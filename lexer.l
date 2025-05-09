@@ -24,6 +24,8 @@
 "break"     { return BREAK; }
 "return"    { return RETURN; }
 
+"="         { return ASSIGNMENT; }
+
 "&&"        { return AND_OP; }
 "||"        { return OR_OP; }
 "=="        { return EQ_OP; }

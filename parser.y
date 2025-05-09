@@ -1,6 +1,19 @@
+%code requires {
+
+    // Struct to hold the value of a variable
+    typedef struct {
+        int intVal;
+        float floatVal;
+        bool boolVal;
+        char* stringVal;
+        char charVal;
+    } Value;  
+}
+
 %{
 #include <stdio.h>
 #include <stdlib.h>
+
 
 extern FILE *yyin;
 int yylex(void);
@@ -9,9 +22,23 @@ int sym[26];
 %}
 
 /* Tokens */
+%union {
+    int intVal;
+    float floatVal;
+    char * stringVal;
+    char charVal;
+    char * variable;
+    bool boolVal;
+    Value val;
+}
 %token IDENTIFIER CONSTANT
 %token INT FLOAT CHAR VOID
 %token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
+
+%token ASSIGNMENT
+
+/* Declare the type of identifier_list */
+%type <stringVal> identifier_list
 
 /* Logical operators */
 %token AND_OP OR_OP
@@ -38,24 +65,76 @@ int sym[26];
 %nonassoc ELSE
 
 %%
+mainProgram: 
+    program 
+    { 
+        printf("Main program\n"); 
+    }
+    | error 
+    { 
+        ErrorToFile("Syntax Error"); YYABORT; 
+    };
 
 program
     : external_declaration
+    {
+        printf("Program\n");
+    }
     | program external_declaration
+    {
+        printf("Program with external declarations\n");
+    }
     ;
 
 external_declaration
     : function_definition
+    {
+        printf("Function definition\n");
+    }
     | variable_definition
+    {
+        printf("Variable definition\n");
+    }
     ;
 
 variable_definition
     : type_specifier identifier_list ';'
+    {
+        printf("variable_declaration Rule 2\n");
+
+        symbolTable->insert($2, $1, NULL);
+    }
+    | type_specifier identifier_list ASSIGNMENT expression ';'
+    {
+        // Check if there is a mismatch between the type of the variable and the type of the value
+        if($1 != $4[0]->type){
+            printf("Error: Type mismatch between variable and value\n");
+            ErrorToFile("Type mismatch between variable and value");
+        }
+
+        symbolTable->insert($2, $1, $4[0]->value);
+        symbolTable->update_Value($2, $4[0]->value, $1); // to make the variable isUsed = true
+    }
+    | CONSTANT type_specifier identifier_list ASSIGNMENT expression ';'
+    {
+        printf("variable_declaration Rule 3\n");
+
+        symbolTable->insert($3, $2, $5[0]->value, true);
+        symbolTable->update_Func($3);
+        symbolTable->printTable();
+    }
     ;
 
 identifier_list
     : IDENTIFIER
+    {
+        $$ = $1;
+    }
     | identifier_list ',' IDENTIFIER
+    {
+        $$ = (char*)malloc(strlen($1) + strlen($3) + 2);
+        sprintf($$, "%s,%s", $1, $3);
+    }
     ;
 
 type_specifier
