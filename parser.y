@@ -1,4 +1,8 @@
+/////////////////////////////////////// CODE REQUIRES ///////////////////////////////////////
+
 %code requires {
+
+    #include "symbol_table.h"
 
     // Struct to hold the value of a variable
     typedef struct {
@@ -10,18 +14,28 @@
     } Value;  
 }
 
+/////////////////////////////////////// GLOBALS ///////////////////////////////////////
+
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include "symbol_table.h"
 
 
 extern FILE *yyin;
 int yylex(void);
 void yyerror(char *s);
 int sym[26];
+
+symbolTable *SymbolTable = new symbolTable();
+
+
+
+
+
 %}
 
-/* Tokens */
+/////////////////////////////////////// UNION ///////////////////////////////////////
 %union {
     int intVal;
     float floatVal;
@@ -31,6 +45,9 @@ int sym[26];
     bool boolVal;
     Value val;
 }
+
+
+/////////////////////////////////////// TOKENS ///////////////////////////////////////
 %token IDENTIFIER CONSTANT
 %token INT FLOAT CHAR VOID
 %token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
@@ -64,6 +81,8 @@ int sym[26];
 %nonassoc LOWER_THAN_ELSE
 %nonassoc ELSE
 
+
+/////////////////////////////////////// MAIN PROGRAM ///////////////////////////////////////
 %%
 mainProgram: 
     program 
@@ -84,8 +103,19 @@ program
     {
         printf("Program with external declarations\n");
     }
+    | /* empty */
+    {
+        // if the program is empty, print the symbol table
+        if (symbolTable->getParent() == NULL) {
+            symbolTable->printTableToFile();
+        }
+    }
     ;
 
+/////////////////////////////////////// EXTERNAL DECLERATION ///////////////////////////////////////
+
+
+// FUNCTION & VARIABLE
 external_declaration
     : function_definition
     {
@@ -97,24 +127,36 @@ external_declaration
     }
     ;
 
-variable_definition
-    : type_specifier identifier_list ';'
+
+/////////////////////////////////////// VARIABLE DEFINITION ///////////////////////////////////////
+variable_definition:
+    
+    // eg. int a, b, c;
+    type_specifier identifier_list ';'
     {
         printf("variable_declaration Rule 2\n");
 
         symbolTable->insert($2, $1, NULL);
     }
+
+    // #####################################
+    
+    // eg. int a, b, c = 5;
     | type_specifier identifier_list ASSIGNMENT expression ';'
     {
         // Check if there is a mismatch between the type of the variable and the type of the value
         if($1 != $4[0]->type){
-            printf("Error: Type mismatch between variable and value\n");
+            printf("[ERROR] Type mismatch between variable and value\n");
             ErrorToFile("Type mismatch between variable and value");
         }
 
         symbolTable->insert($2, $1, $4[0]->value);
         symbolTable->update_Value($2, $4[0]->value, $1); // to make the variable isUsed = true
     }
+
+    // #####################################
+
+    // eg. const int a, b, c = 5, d = 10;
     | CONSTANT type_specifier identifier_list ASSIGNMENT expression ';'
     {
         printf("variable_declaration Rule 3\n");
@@ -125,11 +167,19 @@ variable_definition
     }
     ;
 
-identifier_list
-    : IDENTIFIER
+/////////////////////////////////////// IDENTIFIER ///////////////////////////////////////
+
+identifier_list:
+
+    // eg. a  
+    IDENTIFIER
     {
         $$ = $1;
     }
+
+    // #####################################
+
+    // eg. a, b, c
     | identifier_list ',' IDENTIFIER
     {
         $$ = (char*)malloc(strlen($1) + strlen($3) + 2);
@@ -137,22 +187,35 @@ identifier_list
     }
     ;
 
-type_specifier
-    : INT
+/////////////////////////////////////// TYPE ///////////////////////////////////////
+
+type_specifier:
+    INT
     | FLOAT
     | CHAR
     | VOID
     ;
 
-function_definition
-    : type_specifier IDENTIFIER '(' parameter_list ')' compound_statement
+/////////////////////////////////////// FUNCTION DEFINITION ///////////////////////////////////////
+
+function_definition:
+    
+    // TODO: add symbolTable here
+    // eg. int main() { return 0; }
+    type_specifier IDENTIFIER '(' parameter_list ')' compound_statement
     ;
+
+
+
+/////////////////////////////////////// PARAMETERS ///////////////////////////////////////
 
 parameter_list
     : /* empty */
     | parameter_declaration
     | parameter_list ',' parameter_declaration
     ;
+
+/////////////////////////////////////// PARAMETERS DECLERATION ///////////////////////////////////////
 
 parameter_declaration
     : type_specifier IDENTIFIER
@@ -173,6 +236,20 @@ scope_item
     | statement
     ;
 
+
+
+expression_statement
+    : ';'
+    | expression ';'
+    ;
+
+expression
+    : assignment_expression
+    | expression ',' assignment_expression
+    ;
+
+
+/////////////////////////////////////// STATEMENTS ///////////////////////////////////////
 statement
     : expression_statement
     | compound_statement
@@ -181,36 +258,91 @@ statement
     | jump_statement
     ;
 
-expression_statement
-    : ';'
-    | expression ';'
-    ;
 
-selection_statement
-    : IF '(' expression ')' statement %prec LOWER_THAN_ELSE
+/////////////////////////////////////// CONDITIONS ///////////////////////////////////////
+
+selection_statement:
+    
+    // eg. if (x == 5) printf("x is 5");
+    IF '(' expression ')' statement %prec LOWER_THAN_ELSE
+
+    // #####################################
+
+    // eg. if (x == 5) printf("x is 5"); else printf("x is not 5");
     | IF '(' expression ')' statement ELSE statement
+
+    // #####################################
+
+    // eg. switch (x) case 1: printf("x is 1");
+    // TODO: idk if it need additional rules
     | SWITCH '(' expression ')' statement
     ;
 
-loop_statement
-    : WHILE '(' expression ')' statement
+/////////////////////////////////////// LOOPS ///////////////////////////////////////
+
+loop_statement:
+
+    // eg. while (x == 5) printf("x is 5");
+     WHILE '(' expression ')' statement
+
+    // #####################################
+
+    // eg. do {x++;} while (x < 10);
     | DO statement WHILE '(' expression ')' ';'
-    | FOR '(' expression_statement expression_statement expression ')' statement
+
+    // #####################################
+
+    // eg. for (i = 0; i < 10; i++) printf("i is %d", i);
+    | FOR { symbolTable= new SymbolTable(symbolTable);} '(' expression_statement expression_statement expression ')' statement
     ;
 
+/////////////////////////////////////// JUMP ///////////////////////////////////////
+
+// TODO: check if need to add symbolTable here
 jump_statement
     : GOTO IDENTIFIER ';'
     | CONTINUE ';'
     | BREAK ';'
+
+    // #####################################
+        
     | RETURN ';'
+    {
+       // check if the function is returning a value with same type
+        // TODO: string functionName = (active functions) I would like to get the function name from the symbol table
+        // TODO: we can have a vector of strings that contain all active functions (or stack)
+        string functionName = "dummy" // change later
+        SingleEntry * functionEntry = symbolTable->get_SingleEntry(functionName);
+        
+        // Im not sure that NULL de haga sah walla la
+        if (functionEntry->returnType != NULL) 
+        {
+            printf("[ERROR] Type mismatch in return statement\n");
+            ErrorToFile("Type mismatch in return statement");
+        }
+
+    }
+
+    // #####################################
+
     | RETURN expression ';'
+    {
+        // check if the function is returning a value with same type
+        // TODO: string functionName = (active functions) I would like to get the function name from the symbol table
+        // TODO: we can have a vector of strings that contain all active functions (or stack)
+        string functionName = "dummy" // change later
+        SingleEntry * functionEntry = symbolTable->get_SingleEntry(functionName);
+        
+        if (functionEntry->returnType != $2[0]->type) 
+        {
+            printf("[ERROR] Type mismatch in return statement\n");
+            ErrorToFile("Type mismatch in return statement");
+        }
+    }
     ;
 
-expression
-    : assignment_expression
-    | expression ',' assignment_expression
-    ;
 
+/////////////////////////////////////// EXPRESSIONS ///////////////////////////////////////
 assignment_expression
     : logical_or_expression
     | IDENTIFIER '=' assignment_expression
@@ -291,7 +423,7 @@ primary_expression
 %%
 
 void yyerror(char *s) {
-    fprintf(stderr, "Error: %s\n", s);
+    fprintf(stderr, "[ERROR] %s\n", s);
 }
 
 int main(void) {
