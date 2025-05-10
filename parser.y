@@ -275,8 +275,20 @@ selection_statement:
 
     // eg. switch (x) case 1: printf("x is 1");
     // TODO: idk if it need additional rules
-    | SWITCH '(' expression ')' statement
+    // it doesn't take statement, it needs its own rules
+    | SWITCH '(' expression ')' '{' case_list '}'
     ;
+
+case_list
+    : case_item
+    | case_list case_item
+    ;
+
+case_item:
+     CASE CONSTANT ':' statement
+    | DEFAULT ':' statement
+    ;
+
 
 /////////////////////////////////////// LOOPS ///////////////////////////////////////
 
