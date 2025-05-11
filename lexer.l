@@ -26,6 +26,13 @@
 
 "="         { return ASSIGNMENT; }
 
+// TODO: is this correct?
+"+"         { return '+'; }
+"-"         { return '-'; }
+"*"         { return '*'; }
+"/"         { return '/'; }
+"%"         { return '%'; }
+
 "&&"        { return AND_OP; }
 "||"        { return OR_OP; }
 "=="        { return EQ_OP; }

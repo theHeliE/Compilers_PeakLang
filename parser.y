@@ -29,8 +29,13 @@ int sym[26];
 
 symbolTable *SymbolTable = new symbolTable();
 
-
-
+typedef struct {
+    int intVal;
+    float floatVal;
+    bool boolVal;
+    char* stringVal;
+    char charVal;
+} Value;  
 
 
 %}
@@ -54,8 +59,27 @@ symbolTable *SymbolTable = new symbolTable();
 
 %token ASSIGNMENT
 
-/* Declare the type of identifier_list */
+/////////////////////////////////////// TYPES ///////////////////////////////////////
 %type <stringVal> identifier_list
+
+// FIXME: 3ayzeen n3rf el values bta3 el type
+/* %type <val> expression
+%type <val> assignment_expression
+%type <val> logical_or_expression
+%type <val> logical_and_expression
+%type <val> inclusive_or_expression
+%type <val> exclusive_or_expression
+%type <val> and_expression
+%type <val> equality_expression
+%type <val> relational_expression
+%type <val> shift_expression
+%type <val> additive_expression
+%type <val> multiplicative_expression
+%type <val> unary_expression
+%type <val> primary_expression
+%type <val> type_specifier */
+
+
 
 /* Logical operators */
 %token AND_OP OR_OP
@@ -323,7 +347,7 @@ jump_statement
        // check if the function is returning a value with same type
         // TODO: string functionName = (active functions) I would like to get the function name from the symbol table
         // TODO: we can have a vector of strings that contain all active functions (or stack)
-        string functionName = "dummy" // change later
+        string functionName = "dummy"; // change later
         SingleEntry * functionEntry = symbolTable->get_SingleEntry(functionName);
         
         // Im not sure that NULL de haga sah walla la

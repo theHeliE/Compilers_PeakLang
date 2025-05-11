@@ -16,7 +16,6 @@ struct SingleEntry {
     bool isUsed = false; // To check if the variable is used or not
     queue<pair<dataType, string>> *args;
     dataType returnType;
-    // No need to put name because it is the key in the map
     
     SingleEntry(dataType type, void * value, bool isConst,  queue<pair<dataType, string>> *args, dataType returnType, bool isUsed) : type(type), value(value), isConst(isConst),  args(args), returnType(returnType), isUsed(isUsed) {}
 };
