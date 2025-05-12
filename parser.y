@@ -256,7 +256,7 @@ variable_definition:
              symbolTable->insert($2, $1, nullptr); 
         }
 
-        // handle quadruples - Format: (=, value, "", variable_name)
+        // handle quadruples
         quadruples->addQuadruple("DECLARE", getValueName($2), "", "");
         quadruples->addQuadruple("ASSIGN", valueToString($4), "", getValueName($2));
     }
@@ -283,8 +283,10 @@ variable_definition:
              symbolTable->insert($2, $1, nullptr); 
         }
 
-        // symbolTable->update_Func($3);
-        // symbolTable->printTable();   
+        // handle quadruples
+        quadruples->addQuadruple("DECLARE", getValueName($3), "", "");
+        quadruples->addQuadruple("ASSIGN", valueToString($5), "", getValueName($3));
+
     }
     ;
 
