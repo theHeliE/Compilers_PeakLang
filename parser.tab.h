@@ -37,24 +37,12 @@
 /* Line 1676 of yacc.c  */
 #line 3 "parser.y"
 
-
-    #include "SymbolTable.h"
-
-    typedef struct {
-    int intVal;
-    float floatVal;
-    bool boolVal;
-    char* stringVal;
-    char charVal;
-    void* voidVal;
-} Value;  
-
-
+    #include "value_helpers.h"
 
 
 
 /* Line 1676 of yacc.c  */
-#line 58 "parser.tab.h"
+#line 46 "parser.tab.h"
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -105,7 +93,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 71 "parser.y"
+#line 59 "parser.y"
 
     int intVal;
     float floatVal;
@@ -118,7 +106,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 122 "parser.tab.h"
+#line 110 "parser.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

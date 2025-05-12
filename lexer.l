@@ -1,5 +1,6 @@
 %{
     #include "parser.tab.h"
+    #include "value_helpers.h"
     #include <stdlib.h>
     #include <stdio.h>
     #include <unistd.h>
@@ -15,13 +16,13 @@
 
 %%
 
-"int"       { return INT; }
-"float"     { return FLOAT; }
-"char"      { return CHAR; }
-"void"      { return VOID; }
-"bool"      { return BOOL; }
-"true"      { return TRUE; }
-"false"     { return FALSE; }
+"int"       { yylval.val.type = INT_TYPE; return INT; }
+"float"     { yylval.val.type = FLOAT_TYPE; return FLOAT; }
+"char"      { yylval.val.type = CHAR_TYPE; return CHAR; }
+"void"      { yylval.val.type = VOID_TYPE; return VOID; }
+"bool"      { yylval.val.type = BOOL_TYPE; return BOOL; }
+"true"      { yylval.val.type = BOOL_TYPE; yylval.val.boolVal = true; return TRUE; }
+"false"     { yylval.val.type = BOOL_TYPE; yylval.val.boolVal = false; return FALSE; }
 
 "case"      { return CASE; }
 "default"   { return DEFAULT; }
@@ -53,8 +54,20 @@
 "<<"        { return LEFT_OP; }
 ">>"        { return RIGHT_OP; }
 
-[a-zA-Z_][a-zA-Z0-9_]*  { return IDENTIFIER; }
-[0-9]+                 { return CONSTANT; }
+";"         { return ';'; }
+
+
+[a-zA-Z_][a-zA-Z0-9_]*  { 
+    yylval.val.type = UNKNOWN_TYPE;
+    yylval.val.stringVal = strdup(yytext);
+    return IDENTIFIER; 
+}
+
+[0-9]+      { 
+    yylval.val.type = INT_TYPE;
+    yylval.val.intVal = atoi(yytext);
+    return CONSTANT; 
+}
 
 [ \t\r\n]              ; /* Ignore whitespace */
 .               yyerror("Skill Issue: learn grammar!");

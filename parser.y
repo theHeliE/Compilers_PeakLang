@@ -1,19 +1,7 @@
 /////////////////////////////////////// CODE REQUIRES ///////////////////////////////////////
 
 %code requires {
-
-    #include "SymbolTable.h"
-
-    typedef struct {
-    int intVal;
-    float floatVal;
-    bool boolVal;
-    char* stringVal;
-    char charVal;
-    void* voidVal;
-} Value;  
-
-
+    #include "value_helpers.h"
 }
 
 /////////////////////////////////////// GLOBALS ///////////////////////////////////////
@@ -36,7 +24,7 @@ void yyerror(const char *s);
 // void ErrorToFile(string);
 int sym[26];
 
-// SymbolTable *symbolTable = new SymbolTable();
+SymbolTable *symbolTable = new SymbolTable();
 
 
 // Function to merge parameters
@@ -150,6 +138,7 @@ mainProgram:
     program 
     { 
         printf("Main program\n"); 
+        if (symbolTable->getParent() == NULL) symbolTable->printTableToFile(); 
     }
     | error 
     { 
@@ -193,7 +182,7 @@ variable_definition:
     {
         printf("variable_declaration Rule 2\n");
 
-        // symbolTable->insert($2, $1, NULL);
+        symbolTable->insert($2, $1, NULL);
     }
 
     // #####################################
@@ -248,11 +237,11 @@ identifier_list:
  /////////////////////////////////////// TYPE ///////////////////////////////////////
 
 type_specifier:
-    INT
-    | FLOAT
-    | CHAR
-    | VOID
-    | BOOL
+    INT     { $$ = $1; }
+    | FLOAT   { $$ = $1; }
+    | CHAR    { $$ = $1; }
+    | VOID    { $$ = $1; }
+    | BOOL    { $$ = $1; }
     ;
 
 expression

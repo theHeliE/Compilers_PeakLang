@@ -68,7 +68,7 @@
 /* Copy the first part of user declarations.  */
 
 /* Line 189 of yacc.c  */
-#line 21 "parser.y"
+#line 9 "parser.y"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -87,7 +87,7 @@ void yyerror(const char *s);
 // void ErrorToFile(string);
 int sym[26];
 
-// SymbolTable *symbolTable = new SymbolTable();
+SymbolTable *symbolTable = new SymbolTable();
 
 
 // Function to merge parameters
@@ -144,24 +144,12 @@ string enumToString (dataType enumType) {
 /* Line 209 of yacc.c  */
 #line 3 "parser.y"
 
-
-    #include "SymbolTable.h"
-
-    typedef struct {
-    int intVal;
-    float floatVal;
-    bool boolVal;
-    char* stringVal;
-    char charVal;
-    void* voidVal;
-} Value;  
-
-
+    #include "value_helpers.h"
 
 
 
 /* Line 209 of yacc.c  */
-#line 165 "parser.tab.c"
+#line 153 "parser.tab.c"
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -212,7 +200,7 @@ typedef union YYSTYPE
 {
 
 /* Line 214 of yacc.c  */
-#line 71 "parser.y"
+#line 59 "parser.y"
 
     int intVal;
     float floatVal;
@@ -225,7 +213,7 @@ typedef union YYSTYPE
 
 
 /* Line 214 of yacc.c  */
-#line 229 "parser.tab.c"
+#line 217 "parser.tab.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -237,7 +225,7 @@ typedef union YYSTYPE
 
 
 /* Line 264 of yacc.c  */
-#line 241 "parser.tab.c"
+#line 229 "parser.tab.c"
 
 #ifdef short
 # undef short
@@ -559,15 +547,15 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   150,   150,   154,   161,   165,   177,   181,   192,   202,
-     217,   232,   240,   251,   252,   253,   254,   255,   259,   260,
-     270,   279,   280,   287,   291,   292,   296,   297,   301,   302,
-     308,   309,   317,   318,   319,   320,   321,   330,   335,   342,
-     346,   347,   351,   352,   361,   366,   372,   379,   380,   381,
-     385,   404,   423,   424,   428,   429,   433,   434,   438,   439,
-     443,   444,   448,   449,   453,   454,   455,   459,   460,   461,
-     462,   463,   467,   468,   469,   473,   474,   475,   479,   480,
-     481,   482,   494,   495,   500,   503,   507,   515,   516,   517
+       0,   138,   138,   143,   150,   154,   166,   170,   181,   191,
+     204,   219,   227,   238,   239,   240,   241,   242,   246,   247,
+     257,   266,   267,   274,   278,   279,   283,   284,   288,   289,
+     295,   296,   304,   305,   306,   307,   308,   317,   322,   329,
+     333,   334,   338,   339,   348,   353,   359,   366,   367,   368,
+     372,   391,   410,   411,   415,   416,   420,   421,   425,   426,
+     430,   431,   435,   436,   440,   441,   442,   446,   447,   448,
+     449,   450,   454,   455,   456,   460,   461,   462,   466,   467,
+     468,   469,   481,   482,   487,   490,   494,   502,   503,   504
 };
 #endif
 
@@ -1604,16 +1592,17 @@ yyreduce:
         case 2:
 
 /* Line 1455 of yacc.c  */
-#line 151 "parser.y"
+#line 139 "parser.y"
     { 
         printf("Main program\n"); 
+        if (symbolTable->getParent() == NULL) symbolTable->printTableToFile(); 
     ;}
     break;
 
   case 3:
 
 /* Line 1455 of yacc.c  */
-#line 155 "parser.y"
+#line 144 "parser.y"
     { 
         // ErrorToFile("Syntax Error"); YYABORT; 
         printf("Feh errors ya man\n");  YYABORT; 
@@ -1623,7 +1612,7 @@ yyreduce:
   case 4:
 
 /* Line 1455 of yacc.c  */
-#line 162 "parser.y"
+#line 151 "parser.y"
     {
         printf("Program\n");
     ;}
@@ -1632,7 +1621,7 @@ yyreduce:
   case 5:
 
 /* Line 1455 of yacc.c  */
-#line 166 "parser.y"
+#line 155 "parser.y"
     {
         printf("Program with external declarations\n");
     ;}
@@ -1641,7 +1630,7 @@ yyreduce:
   case 6:
 
 /* Line 1455 of yacc.c  */
-#line 178 "parser.y"
+#line 167 "parser.y"
     {
         printf("Function definition\n");
     ;}
@@ -1650,7 +1639,7 @@ yyreduce:
   case 7:
 
 /* Line 1455 of yacc.c  */
-#line 182 "parser.y"
+#line 171 "parser.y"
     {
         printf("Variable definition\n");
     ;}
@@ -1659,34 +1648,32 @@ yyreduce:
   case 8:
 
 /* Line 1455 of yacc.c  */
-#line 193 "parser.y"
+#line 182 "parser.y"
     {
         printf("variable_declaration Rule 2\n");
 
-        // symbolTable->insert($2, $1, NULL);
+        symbolTable->insert((yyvsp[(2) - (3)].val), (yyvsp[(1) - (3)].val), NULL);
     ;}
     break;
 
   case 9:
 
 /* Line 1455 of yacc.c  */
-#line 203 "parser.y"
+#line 192 "parser.y"
     {
-        // Check if there is a mismatch between the type of the variable and the type of the value
-        // if($1 != $4[0]->type){
-        //     printf("[ERROR] Type mismatch between variable and value\n");
-        //     ErrorToFile("Type mismatch between variable and value");
-        // }
+        if((yyvsp[(1) - (5)].val) != (yyvsp[(4) - (5)].val)[0]->type){
+            printf("[ERROR] Type mismatch between variable and value\n");
+        }
 
-        // symbolTable->insert($2, $1, $4[0]->value);
-        // symbolTable->update_Value($2, $4[0]->value, $1); // to make the variable isUsed = true
+        symbolTable->insert((yyvsp[(2) - (5)].val), (yyvsp[(1) - (5)].val), (yyvsp[(4) - (5)].val)[0]->value);
+        symbolTable->update_Value((yyvsp[(2) - (5)].val), (yyvsp[(4) - (5)].val)[0]->value, (yyvsp[(1) - (5)].val)); // to make the variable isUsed = true
     ;}
     break;
 
   case 10:
 
 /* Line 1455 of yacc.c  */
-#line 218 "parser.y"
+#line 205 "parser.y"
     {
         printf("variable_declaration Rule 3\n");
 
@@ -1699,7 +1686,7 @@ yyreduce:
   case 11:
 
 /* Line 1455 of yacc.c  */
-#line 233 "parser.y"
+#line 220 "parser.y"
     {
         (yyval.val) = (yyvsp[(1) - (1)].val);
     ;}
@@ -1708,31 +1695,66 @@ yyreduce:
   case 12:
 
 /* Line 1455 of yacc.c  */
-#line 241 "parser.y"
+#line 228 "parser.y"
     {
         // $$ = (char*)malloc(strlen($1) + strlen($3) + 2);
         // sprintf($$, "%s,%s", $1, $3);
     ;}
     break;
 
+  case 13:
+
+/* Line 1455 of yacc.c  */
+#line 238 "parser.y"
+    { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
+    break;
+
+  case 14:
+
+/* Line 1455 of yacc.c  */
+#line 239 "parser.y"
+    { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
+    break;
+
+  case 15:
+
+/* Line 1455 of yacc.c  */
+#line 240 "parser.y"
+    { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
+    break;
+
+  case 16:
+
+/* Line 1455 of yacc.c  */
+#line 241 "parser.y"
+    { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
+    break;
+
+  case 17:
+
+/* Line 1455 of yacc.c  */
+#line 242 "parser.y"
+    { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
+    break;
+
   case 21:
 
 /* Line 1455 of yacc.c  */
-#line 279 "parser.y"
+#line 266 "parser.y"
     { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
     break;
 
   case 22:
 
 /* Line 1455 of yacc.c  */
-#line 280 "parser.y"
+#line 267 "parser.y"
     { (yyval.val) = (yyvsp[(1) - (3)].val); ;}
     break;
 
   case 50:
 
 /* Line 1455 of yacc.c  */
-#line 386 "parser.y"
+#line 373 "parser.y"
     {
        // check if the function is returning a value with same type
         // TODO: string functionName = (active functions) I would like to get the function name from the symbol table
@@ -1753,7 +1775,7 @@ yyreduce:
   case 51:
 
 /* Line 1455 of yacc.c  */
-#line 405 "parser.y"
+#line 392 "parser.y"
     {
         // check if the function is returning a value with same type
         // TODO: string functionName = (active functions) I would like to get the function name from the symbol table
@@ -1772,14 +1794,14 @@ yyreduce:
   case 82:
 
 /* Line 1455 of yacc.c  */
-#line 494 "parser.y"
+#line 481 "parser.y"
     { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
     break;
 
   case 83:
 
 /* Line 1455 of yacc.c  */
-#line 495 "parser.y"
+#line 482 "parser.y"
     {
           // Create a new Value and apply negation
           (yyval.val) = (yyvsp[(2) - (2)].val);
@@ -1790,7 +1812,7 @@ yyreduce:
   case 84:
 
 /* Line 1455 of yacc.c  */
-#line 500 "parser.y"
+#line 487 "parser.y"
     {
           (yyval.val) = (yyvsp[(2) - (2)].val);
       ;}
@@ -1799,7 +1821,7 @@ yyreduce:
   case 85:
 
 /* Line 1455 of yacc.c  */
-#line 503 "parser.y"
+#line 490 "parser.y"
     {
           (yyval.val) = (yyvsp[(2) - (2)].val);
           (yyval.val).boolVal = !(yyval.val).boolVal;
@@ -1809,7 +1831,7 @@ yyreduce:
   case 86:
 
 /* Line 1455 of yacc.c  */
-#line 507 "parser.y"
+#line 494 "parser.y"
     {
           (yyval.val) = (yyvsp[(2) - (2)].val);
           (yyval.val).intVal = ~(yyval.val).intVal;
@@ -1819,28 +1841,28 @@ yyreduce:
   case 87:
 
 /* Line 1455 of yacc.c  */
-#line 515 "parser.y"
+#line 502 "parser.y"
     { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
     break;
 
   case 88:
 
 /* Line 1455 of yacc.c  */
-#line 516 "parser.y"
+#line 503 "parser.y"
     { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
     break;
 
   case 89:
 
 /* Line 1455 of yacc.c  */
-#line 517 "parser.y"
+#line 504 "parser.y"
     { (yyval.val) = (yyvsp[(2) - (3)].val); ;}
     break;
 
 
 
 /* Line 1455 of yacc.c  */
-#line 1844 "parser.tab.c"
+#line 1866 "parser.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2052,7 +2074,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 520 "parser.y"
+#line 507 "parser.y"
 
 
 void yyerror(const char *s) {
