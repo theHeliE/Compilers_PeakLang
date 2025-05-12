@@ -26,9 +26,23 @@ int sym[26];
 
 SymbolTable *symbolTable = new SymbolTable();
 
-
-// Function to merge parameters
-// Value merge(Value param1, Value param2);
+// Helper function to allocate memory for a Value's content
+void* allocateValueFromExpression(const Value& exprValue) {
+    void* allocated_ptr = nullptr;
+    switch(exprValue.type) {
+        case INT_TYPE:    allocated_ptr = (void*)new int(exprValue.intVal); break;
+        case FLOAT_TYPE:  allocated_ptr = (void*)new float(exprValue.floatVal); break;
+        case BOOL_TYPE:   allocated_ptr = (void*)new bool(exprValue.boolVal); break;
+        case CHAR_TYPE:   allocated_ptr = (void*)new char(exprValue.charVal); break;
+        case STRING_TYPE: 
+            if (exprValue.stringVal) allocated_ptr = (void*)strdup(exprValue.stringVal); 
+            break;
+        default:
+            fprintf(stderr, "Warning: Cannot allocate value for unhandled expression type %d\n", exprValue.type);
+            break;
+    }
+    return allocated_ptr;
+}
 
 string enumToString (dataType enumType) {
     switch (enumType) {
@@ -75,7 +89,8 @@ string enumToString (dataType enumType) {
 %token <val> CHAR 
 %token <val> VOID 
 %token <val> BOOL 
-%token TRUE FALSE
+%token <val> TRUE
+%token <val> FALSE
 %token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
 %token <val> ASSIGNMENT
@@ -181,23 +196,26 @@ variable_definition:
     type_specifier identifier_list ';'
     {
         printf("variable_declaration Rule 2\n");
-
         symbolTable->insert($2, $1, NULL);
     }
 
     // #####################################
     
     // eg. int a, b, c = 5;
+
     | type_specifier identifier_list ASSIGNMENT expression ';'
     {
-        // Check if there is a mismatch between the type of the variable and the type of the value
-        // if($1 != $4[0]->type){
-        //     printf("[ERROR] Type mismatch between variable and value\n");
-        //     ErrorToFile("Type mismatch between variable and value");
-        // }
+        // $1 is type_specifier (Value), $2 is identifier_list (Value), $4 is expression (Value)
+        
+        void* allocated_val_ptr = allocateValueFromExpression($4); 
 
-        // symbolTable->insert($2, $1, $4[0]->value);
-        // symbolTable->update_Value($2, $4[0]->value, $1); // to make the variable isUsed = true
+        if (allocated_val_ptr != nullptr) { 
+            symbolTable->insert($2, $1, allocated_val_ptr); 
+            symbolTable->update_Value(getValueName($2), allocated_val_ptr, $4.type);
+        } else {
+             yyerror(("Failed to create value for assignment to variable " + getValueName($2)).c_str());
+             symbolTable->insert($2, $1, nullptr); 
+        }
     }
 
     // #####################################
@@ -503,6 +521,8 @@ unary_expression
 primary_expression
     : IDENTIFIER            { $$ = $1; }
     | CONSTANT              { $$ = $1; }
+    | TRUE                  { $$ = $1; }
+    | FALSE                 { $$ = $1; }
     | '(' expression ')'    { $$ = $2; }
     ; 
 

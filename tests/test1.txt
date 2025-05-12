@@ -1,1 +1,3 @@
-int x;
+char x;
+char f = 'h';
+char t = 'a';

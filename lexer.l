@@ -21,8 +21,8 @@
 "char"      { yylval.val.type = CHAR_TYPE; return CHAR; }
 "void"      { yylval.val.type = VOID_TYPE; return VOID; }
 "bool"      { yylval.val.type = BOOL_TYPE; return BOOL; }
-"true"      { yylval.val.type = BOOL_TYPE; yylval.val.boolVal = true; return TRUE; }
-"false"     { yylval.val.type = BOOL_TYPE; yylval.val.boolVal = false; return FALSE; }
+"tmam"      { yylval.val.type = BOOL_TYPE; yylval.val.boolVal = true; return TRUE; }
+"faks"     { yylval.val.type = BOOL_TYPE; yylval.val.boolVal = false; return FALSE; }
 
 "case"      { return CASE; }
 "default"   { return DEFAULT; }
@@ -55,12 +55,28 @@
 ">>"        { return RIGHT_OP; }
 
 ";"         { return ';'; }
+","         { return ','; }
+"("         { return '('; }
+")"         { return ')'; }
+"{"         { return '{'; }
+"}"         { return '}'; }
 
+'[^']' {
+    yylval.val.type = CHAR_TYPE;
+    yylval.val.charVal = yytext[1];
+    return CONSTANT; 
+}
 
 [a-zA-Z_][a-zA-Z0-9_]*  { 
     yylval.val.type = UNKNOWN_TYPE;
     yylval.val.stringVal = strdup(yytext);
     return IDENTIFIER; 
+}
+
+[0-9]+\.[0-9]+ {
+    yylval.val.type = FLOAT_TYPE;
+    yylval.val.floatVal = atof(yytext);
+    return CONSTANT; // Return same token as integer for simplicity?
 }
 
 [0-9]+      { 

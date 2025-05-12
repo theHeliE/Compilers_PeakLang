@@ -42,6 +42,7 @@ class SymbolTable
     unordered_map<string, SingleEntry *> table;
     SymbolTable *parent;
     vector<Quadruple> quadruples; // Store quadruples
+    void * value;
     int tempVarCounter = 0;       // Counter for generating temporary variable names
 public:
     SymbolTable(SymbolTable *parent = nullptr) : parent(parent) {}
