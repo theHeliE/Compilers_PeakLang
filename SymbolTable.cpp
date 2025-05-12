@@ -19,6 +19,7 @@ void SymbolTable::insert(string name, dataType type, void *value, bool isConst, 
         // ErrorToFile("Variable " + name + " already declared");
         // throw runtime_error("Variable " + name + " already declared");
         cout << "ERROR: Variable " << name << " already declared" << endl;
+        return;
     }
 
     ////////////Functions Checks////////////////////
@@ -31,6 +32,7 @@ void SymbolTable::insert(string name, dataType type, void *value, bool isConst, 
             // ErrorToFile("Function " + name + " already declared");
             // throw runtime_error("Function " + name + " already declared");
             cout << "ERROR: Function " << name << " already declared" << endl;
+            return;
         }
     }
 
@@ -87,6 +89,7 @@ void SymbolTable::update_Value(string name, void *value, dataType type)
         // ErrorToFile("Variable " + name + " not declared");
         // throw runtime_error("Variable " + name + " not declared");
         cout << "ERROR: Variable " << name << " not declared" << endl;
+        return;
     }
     else
     {
@@ -95,6 +98,7 @@ void SymbolTable::update_Value(string name, void *value, dataType type)
             // ErrorToFile("Type mismatch for variable " + name);
             // throw runtime_error("Type mismatch for variable " + name);
             cout << "ERROR: Type mismatch for variable " << name << endl;
+            return;
         }
 
         if (entry->isConst)
@@ -102,8 +106,9 @@ void SymbolTable::update_Value(string name, void *value, dataType type)
             // ErrorToFile("Variable " + name + " is constant");
             // throw runtime_error("Variable " + name + " is constant");
             cout << "ERROR: Variable " << name << " is constant" << endl;
+            return;
         }
-
+    
         entry->isUsed = true;
         entry->value = value;
     }

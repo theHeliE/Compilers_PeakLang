@@ -1,9 +1,11 @@
 ////////////////////////////////////////////////////////////////////////////////////////
 Name                Type           isConst   isUsed              Value     
 ----------------------------------------------------------------------------------------
-io                  INT            true      true                19
-t                   CHAR           false     true                a
-f                   CHAR           false     true                h
-x                   CHAR           false     false               NULL
+l                   CHAR           false     false               l
+hazem               CHAR           true      false               n
+io                  INT            true      false               19
+t                   CHAR           false     false               a
+f                   CHAR           false     false               h
+x                   CHAR           false     true                g
 
 ////////////////////////////////////////////////////////////////////////////////////////

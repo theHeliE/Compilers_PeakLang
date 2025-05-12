@@ -154,7 +154,6 @@ mainProgram:
     program 
     { 
         printf("Main program\n"); 
-        if (symbolTable->getParent() == NULL) symbolTable->printTableToFile(); 
     }
     | error 
     { 
@@ -187,6 +186,10 @@ external_declaration:
     {
         printf("Variable definition\n");
     }
+    | expression_statement
+    {
+        printf("Expression statement\n");
+    }
     ;
 
 
@@ -212,7 +215,6 @@ variable_definition:
 
         if (allocated_val_ptr != nullptr) { 
             symbolTable->insert($2, $1, allocated_val_ptr); 
-            symbolTable->update_Value(getValueName($2), allocated_val_ptr, $4.type);
         } else {
              yyerror(("Failed to create value for assignment to variable " + getValueName($2)).c_str());
              symbolTable->insert($2, $1, nullptr); 
@@ -232,7 +234,6 @@ variable_definition:
 
         if (allocated_val_ptr != nullptr) { 
             symbolTable->insert($3, $2, allocated_val_ptr,true); 
-            //symbolTable->update_Value(getValueName($3), allocated_val_ptr, $5.type);
         } else {
              yyerror(("Failed to create value for assignment to variable " + getValueName($2)).c_str());
              symbolTable->insert($2, $1, nullptr); 
@@ -275,7 +276,9 @@ type_specifier:
     ;
 
 expression
-    : assignment_expression
+    : assignment_expression {
+        printf("Assignment Expression\n");
+    }
     | expression ',' assignment_expression
     ;
 
@@ -440,7 +443,20 @@ jump_statement
 /////////////////////////////////////// EXPRESSIONS ///////////////////////////////////////
 assignment_expression:
  logical_or_expression
-    | IDENTIFIER '=' assignment_expression
+    | IDENTIFIER ASSIGNMENT assignment_expression  {
+        printf("Assignment expression\n");
+        // $1 is IDENTIFIER, $3 is assignment_expression (Value)
+
+        void* allocated_val_ptr = allocateValueFromExpression($3);
+        if (allocated_val_ptr != nullptr) {
+            symbolTable->update_Value(getValueName($1), allocated_val_ptr , $3.type);
+        } else {
+            yyerror(("Failed to create value for assignment to variable " + getValueName($1)).c_str());
+        }
+    }
+            
+
+
     ;
 
 logical_or_expression
@@ -562,6 +578,15 @@ int main(int argc, char **argv) {
         fprintf(stderr, "No input file provided.\n");
         return 1;
     }
+       if (yyparse() == 0) {
+        printf("Parsing completed successfully.\n");
+        if (symbolTable->getParent() == NULL) {
+            symbolTable->printTableToFile();
+        }
+        return 0;
+    } else {
+        printf("Parsing failed.\n");
+        return 1;
+       }
 
-    return yyparse();
 }

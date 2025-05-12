@@ -2,3 +2,7 @@ char x;
 char f = 'h';
 char t = 'a';
 thabet int io = 19;
+thabet char hazem = 'n';
+afifi = 99;
+x = 'g';
+char l = 'l';
