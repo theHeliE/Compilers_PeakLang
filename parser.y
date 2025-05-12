@@ -3,6 +3,7 @@
 %code requires {
 
     #include "symbol_table.h"
+    #include "quadruples.h"
 
     // Struct to hold the value of a variable
     typedef struct {
@@ -20,7 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "symbol_table.h"
-
+#include "quadruples.h"
 
 extern FILE *yyin;
 int yylex(void);
@@ -35,8 +36,11 @@ typedef struct {
     bool boolVal;
     char* stringVal;
     char charVal;
+    void* voidVal;
 } Value;  
 
+// Function to merge parameters
+Value* merge(Value* param1, Value* param2);
 
 %}
 
@@ -53,32 +57,41 @@ typedef struct {
 
 
 /////////////////////////////////////// TOKENS ///////////////////////////////////////
-%token IDENTIFIER CONSTANT
-%token INT FLOAT CHAR VOID BOOL 
+%token <val> IDENTIFIER
+%token <val> CONSTANT
+%token <val> INT 
+%token <val> FLOAT 
+%token <val> CHAR 
+%token <val> VOID 
+%token <val> BOOL 
 %token TRUE FALSE
 %token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
-%token ASSIGNMENT
+%token <val> ASSIGNMENT
 
 /////////////////////////////////////// TYPES ///////////////////////////////////////
-%type <stringVal> identifier_list
 
-// FIXME: 3ayzeen n3rf el values bta3 el type
-%type <stringVal> expression
-%type <stringVal> assignment_expression
-%type <stringVal> logical_or_expression
-%type <stringVal> logical_and_expression
-%type <stringVal> inclusive_or_expression
-%type <stringVal> exclusive_or_expression
-%type <stringVal> and_expression
-%type <stringVal> equality_expression
-%type <stringVal> relational_expression
-%type <stringVal> shift_expression
-%type <stringVal> additive_expression
-%type <stringVal> multiplicative_expression
-%type <stringVal> unary_expression
-%type <stringVal> primary_expression
-%type <stringVal> type_specifier
+
+
+%type <val> expression
+%type <val> identifier_list
+%type <val> assignment_expression
+%type <val> logical_or_expression
+%type <val> logical_and_expression
+%type <val> inclusive_or_expression
+%type <val> exclusive_or_expression
+%type <val> and_expression
+%type <val> equality_expression
+%type <val> relational_expression
+%type <val> shift_expression
+%type <val> additive_expression
+%type <val> multiplicative_expression
+%type <val> unary_expression
+%type <val> primary_expression
+%type <val> type_specifier
+%type <val> parameter_list
+%type <val> parameter_declaration
+
 
 
 
@@ -89,7 +102,7 @@ typedef struct {
 %token LEFT_OP RIGHT_OP
 
 /* Operator precedence */
-%right '='
+
 %right '?' ':'
 %left OR_OP
 %left AND_OP
@@ -98,14 +111,15 @@ typedef struct {
 %left '&'
 %left EQ_OP NE_OP
 %left '<' '>' LE_OP GE_OP
-%left LEFT_OP RIGHT_OP
-%left '+' '-'
-%left '*' '/' '%'
-%right UMINUS UPLUS '!' '~'
+%left LEFT_OP RIGHT_OP 
+
+%right UMINUS UPLUS '!' '~' 
 
 %nonassoc LOWER_THAN_ELSE
 %nonassoc ELSE
-
+%right '='
+%left '+' '-'
+%left '*' '/' '%'
 
 /////////////////////////////////////// MAIN PROGRAM ///////////////////////////////////////
 %%
@@ -137,12 +151,13 @@ program
     }
     ;
 
+
 /////////////////////////////////////// EXTERNAL DECLERATION ///////////////////////////////////////
 
 
 // FUNCTION & VARIABLE
-external_declaration
-    : function_definition
+external_declaration:
+    function_definition
     {
         printf("Function definition\n");
     }
@@ -212,7 +227,8 @@ identifier_list:
     }
     ;
 
-/////////////////////////////////////// TYPE ///////////////////////////////////////
+
+ /////////////////////////////////////// TYPE ///////////////////////////////////////
 
 type_specifier:
     INT
@@ -221,6 +237,12 @@ type_specifier:
     | VOID
     | BOOL
     ;
+
+expression
+    : assignment_expression
+    | expression ',' assignment_expression
+    ;
+
 
 /////////////////////////////////////// FUNCTION DEFINITION ///////////////////////////////////////
 
@@ -235,11 +257,13 @@ function_definition:
 
 /////////////////////////////////////// PARAMETERS ///////////////////////////////////////
 
+
 parameter_list
-    : /* empty */
-    | parameter_declaration
-    | parameter_list ',' parameter_declaration
+    : /* empty */                      { $$ = 0; } // TODO: change later
+    | parameter_declaration           { $$ = $1; }
+    | parameter_list ',' parameter_declaration { $$ = merge($1, $3); }
     ;
+
 
 /////////////////////////////////////// PARAMETERS DECLERATION ///////////////////////////////////////
 
@@ -269,10 +293,7 @@ expression_statement
     | expression ';'
     ;
 
-expression
-    : assignment_expression
-    | expression ',' assignment_expression
-    ;
+
 
 
 /////////////////////////////////////// STATEMENTS ///////////////////////////////////////
@@ -368,7 +389,7 @@ jump_statement
         // check if the function is returning a value with same type
         // TODO: string functionName = (active functions) I would like to get the function name from the symbol table
         // TODO: we can have a vector of strings that contain all active functions (or stack)
-        string functionName = "dummy" // change later
+        string functionName = "dummy"; // change later
         SingleEntry * functionEntry = symbolTable->get_SingleEntry(functionName);
         
         if (functionEntry->returnType != $2[0]->type) 
@@ -381,8 +402,8 @@ jump_statement
 
 
 /////////////////////////////////////// EXPRESSIONS ///////////////////////////////////////
-assignment_expression
-    : logical_or_expression
+assignment_expression:
+ logical_or_expression
     | IDENTIFIER '=' assignment_expression
     ;
 
@@ -444,24 +465,53 @@ multiplicative_expression
     | multiplicative_expression '%' unary_expression
     ;
 
-unary_expression
+// TODO: adeem
+/* unary_expression
     : primary_expression
     | '-' unary_expression %prec UMINUS
     | '+' unary_expression %prec UPLUS
     | '!' unary_expression
     | '~' unary_expression
+    ; */
+
+unary_expression
+    : primary_expression         { $$ = $1; }
+    | '-' unary_expression %prec UMINUS {
+          // Create a new Value and apply negation
+          $$ = $2;
+          $$->intVal = -$$->intVal;
+      }
+    | '+' unary_expression %prec UPLUS {
+          $$ = $2;
+      }
+    | '!' unary_expression {
+          $$ = $2;
+          $$->boolVal = !$$->boolVal;
+      }
+    | '~' unary_expression {
+          $$ = $2;
+          $$->intVal = ~$$->intVal;
+      }
     ;
 
+    
 primary_expression
-    : IDENTIFIER
-    | CONSTANT
-    | '(' expression ')'
-    ;
+    : IDENTIFIER            { $$ = $1; }
+    | CONSTANT              { $$ = $1; }
+    | '(' expression ')'    { $$ = $2; }
+    ; 
 
 %%
 
 void yyerror(char *s) {
     fprintf(stderr, "[ERROR] %s\n", s);
+}
+
+// Function to merge parameters from parameter_list
+Value* merge(Value* param1, Value* param2) {
+    // Simple implementation - in a real compiler this would 
+    // properly merge parameter information
+    return param2; // Just return the second parameter for now
 }
 
 int main(void) {

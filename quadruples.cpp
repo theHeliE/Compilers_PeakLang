@@ -1,4 +1,4 @@
-#include "quadruples_struct.hpp"
+#include "quadruples.h"
 #include <iostream>
 #include <iomanip> // Required for std::setw and std::left
 #include <fstream>
