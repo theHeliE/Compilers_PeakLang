@@ -32,6 +32,17 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
+/* "%code requires" blocks.  */
+
+/* Line 1676 of yacc.c  */
+#line 3 "parser.y"
+
+    #include "value_helpers.h"
+
+
+
+/* Line 1676 of yacc.c  */
+#line 46 "parser.tab.h"
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -45,36 +56,59 @@
      FLOAT = 261,
      CHAR = 262,
      VOID = 263,
-     CASE = 264,
-     DEFAULT = 265,
-     IF = 266,
-     ELSE = 267,
-     SWITCH = 268,
-     WHILE = 269,
-     DO = 270,
-     FOR = 271,
-     GOTO = 272,
-     CONTINUE = 273,
-     BREAK = 274,
-     RETURN = 275,
-     AND_OP = 276,
-     OR_OP = 277,
-     EQ_OP = 278,
-     NE_OP = 279,
-     LE_OP = 280,
-     GE_OP = 281,
-     LEFT_OP = 282,
-     RIGHT_OP = 283,
-     UPLUS = 284,
-     UMINUS = 285,
-     LOWER_THAN_ELSE = 286
+     BOOL = 264,
+     TRUE = 265,
+     FALSE = 266,
+     CASE = 267,
+     DEFAULT = 268,
+     IF = 269,
+     ELSE = 270,
+     SWITCH = 271,
+     WHILE = 272,
+     DO = 273,
+     FOR = 274,
+     GOTO = 275,
+     CONTINUE = 276,
+     BREAK = 277,
+     RETURN = 278,
+     THABET = 279,
+     ASSIGNMENT = 280,
+     AND_OP = 281,
+     OR_OP = 282,
+     EQ_OP = 283,
+     NE_OP = 284,
+     LE_OP = 285,
+     GE_OP = 286,
+     LEFT_OP = 287,
+     RIGHT_OP = 288,
+     UPLUS = 289,
+     UMINUS = 290,
+     LOWER_THAN_ELSE = 291
    };
 #endif
 
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef int YYSTYPE;
+typedef union YYSTYPE
+{
+
+/* Line 1676 of yacc.c  */
+#line 73 "parser.y"
+
+    int intVal;
+    float floatVal;
+    char * stringVal;
+    char charVal;
+    char * variable;
+    bool boolVal;
+    Value val;
+
+
+
+/* Line 1676 of yacc.c  */
+#line 111 "parser.tab.h"
+} YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
