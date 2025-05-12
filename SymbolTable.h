@@ -1,4 +1,6 @@
 #pragma once
+#include <stdio.h>
+#include <stdlib.h>
 #include <unordered_map>
 #include <vector>
 #include <string>
@@ -7,6 +9,7 @@
 #include <queue>
 #include "enums.h"
 #include <fstream>
+
 using namespace std;
 
 struct SingleEntry {

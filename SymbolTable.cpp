@@ -1,7 +1,8 @@
-#include "symbol_table.h"
+#include "SymbolTable.h"
 #include <iomanip>
 
-extern void ErrorToFile(string msg);
+
+// extern void ErrorToFile(string msg);
 extern string enumToString(dataType type);
 ofstream SymbolTab("SymbolTable.txt");
 
@@ -13,7 +14,7 @@ void SymbolTable::insert(string name, dataType type, void * value, bool isConst,
     // Check if the variable is already declared
 
     if (table.find(name) != table.end() && table[name]->type != FUNC_TYPE) {
-        ErrorToFile("Variable " + name + " already declared");
+        // ErrorToFile("Variable " + name + " already declared");
         //throw runtime_error("Variable " + name + " already declared");
         cout << "ERROR: Variable " << name << " already declared" << endl;
     }
@@ -25,7 +26,7 @@ void SymbolTable::insert(string name, dataType type, void * value, bool isConst,
         // Check if the function is already declared
         if (table.find(name) != table.end()) 
         {
-            ErrorToFile("Function " + name + " already declared");
+            // ErrorToFile("Function " + name + " already declared");
             //throw runtime_error("Function " + name + " already declared");
             cout << "ERROR: Function " << name << " already declared" << endl;
         }
@@ -59,7 +60,7 @@ void SymbolTable::checkUnused()
     {
         if (!entry.second->isUsed)
         {
-            ErrorToFile("Warning, "+ entry.first + " is declared but not used");
+            // ErrorToFile("Warning, "+ entry.first + " is declared but not used");
             cout << "WARNING: " << entry.first << " is declared but not used" << endl;
         }
     }
@@ -74,7 +75,7 @@ void SymbolTable::update_Value(string name, void * value, dataType type)
 
     if (entry == nullptr)
     {
-        ErrorToFile("Variable " + name + " not declared");
+        // ErrorToFile("Variable " + name + " not declared");
         //throw runtime_error("Variable " + name + " not declared");
         cout<<"ERROR: Variable "<<name<<" not declared"<<endl;
     }
@@ -82,7 +83,7 @@ else
 {
     if (entry->type != type)
     {
-        ErrorToFile("Type mismatch for variable " + name);
+        // ErrorToFile("Type mismatch for variable " + name);
         //throw runtime_error("Type mismatch for variable " + name);
         cout<<"ERROR: Type mismatch for variable "<<name<<endl;
     }
@@ -90,7 +91,7 @@ else
 
     if (entry->isConst)
     {
-        ErrorToFile("Variable " + name + " is constant");
+        // ErrorToFile("Variable " + name + " is constant");
         //throw runtime_error("Variable " + name + " is constant");
         cout<<"ERROR: Variable "<<name<<" is constant"<<endl;
     }

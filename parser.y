@@ -2,35 +2,9 @@
 
 %code requires {
 
-    #include "symbol_table.h"
-    #include "quadruples.h"
+    #include "SymbolTable.h"
 
-    // Struct to hold the value of a variable
     typedef struct {
-        int intVal;
-        float floatVal;
-        bool boolVal;
-        char* stringVal;
-        char charVal;
-    } Value;  
-}
-
-/////////////////////////////////////// GLOBALS ///////////////////////////////////////
-
-%{
-#include <stdio.h>
-#include <stdlib.h>
-#include "symbol_table.h"
-#include "quadruples.h"
-
-extern FILE *yyin;
-int yylex(void);
-void yyerror(char *s);
-int sym[26];
-
-symbolTable *SymbolTable = new symbolTable();
-
-typedef struct {
     int intVal;
     float floatVal;
     bool boolVal;
@@ -39,8 +13,57 @@ typedef struct {
     void* voidVal;
 } Value;  
 
+
+}
+
+/////////////////////////////////////// GLOBALS ///////////////////////////////////////
+
+%{
+#include <stdio.h>
+#include <stdlib.h>
+#include "SymbolTable.h"
+#include <utility>
+#include <queue>
+#include <vector>
+#include <string>
+#include <fstream>
+#include <iomanip>
+#include <cstring>
+
+extern FILE *yyin;
+int yylex(void);
+void yyerror(const char *s);
+// void ErrorToFile(string);
+int sym[26];
+
+// SymbolTable *symbolTable = new SymbolTable();
+
+
 // Function to merge parameters
-Value* merge(Value* param1, Value* param2);
+// Value merge(Value param1, Value param2);
+
+string enumToString (dataType enumType) {
+    switch (enumType) {
+        case dataType::INT_TYPE:
+            return "INT";
+        case dataType::FLOAT_TYPE:
+            return "FLOAT";
+        case dataType::BOOL_TYPE:
+            return "BOOL";
+        case dataType::STRING_TYPE:
+            return "STRING";
+        case dataType::CHAR_TYPE:
+            return "CHAR";
+        case dataType::FUNC_TYPE:
+            return "FUNC";
+        case dataType::VOID_TYPE:
+            return "VOID";
+        case dataType::UNKNOWN_TYPE:
+            return "UNKNOWN";
+        default:
+            return "UNKNOWN";
+    }
+}
 
 %}
 
@@ -130,7 +153,8 @@ mainProgram:
     }
     | error 
     { 
-        ErrorToFile("Syntax Error"); YYABORT; 
+        // ErrorToFile("Syntax Error"); YYABORT; 
+        printf("Feh errors ya man\n");  YYABORT; 
     };
 
 program
@@ -141,13 +165,6 @@ program
     | program external_declaration
     {
         printf("Program with external declarations\n");
-    }
-    | /* empty */
-    {
-        // if the program is empty, print the symbol table
-        if (symbolTable->getParent() == NULL) {
-            symbolTable->printTableToFile();
-        }
     }
     ;
 
@@ -176,7 +193,7 @@ variable_definition:
     {
         printf("variable_declaration Rule 2\n");
 
-        symbolTable->insert($2, $1, NULL);
+        // symbolTable->insert($2, $1, NULL);
     }
 
     // #####################################
@@ -185,13 +202,13 @@ variable_definition:
     | type_specifier identifier_list ASSIGNMENT expression ';'
     {
         // Check if there is a mismatch between the type of the variable and the type of the value
-        if($1 != $4[0]->type){
-            printf("[ERROR] Type mismatch between variable and value\n");
-            ErrorToFile("Type mismatch between variable and value");
-        }
+        // if($1 != $4[0]->type){
+        //     printf("[ERROR] Type mismatch between variable and value\n");
+        //     ErrorToFile("Type mismatch between variable and value");
+        // }
 
-        symbolTable->insert($2, $1, $4[0]->value);
-        symbolTable->update_Value($2, $4[0]->value, $1); // to make the variable isUsed = true
+        // symbolTable->insert($2, $1, $4[0]->value);
+        // symbolTable->update_Value($2, $4[0]->value, $1); // to make the variable isUsed = true
     }
 
     // #####################################
@@ -201,9 +218,9 @@ variable_definition:
     {
         printf("variable_declaration Rule 3\n");
 
-        symbolTable->insert($3, $2, $5[0]->value, true);
-        symbolTable->update_Func($3);
-        symbolTable->printTable();
+        // symbolTable->insert($3, $2, $5[0]->value, true);
+        // symbolTable->update_Func($3);
+        // symbolTable->printTable();
     }
     ;
 
@@ -222,8 +239,8 @@ identifier_list:
     // eg. a, b, c
     | identifier_list ',' IDENTIFIER
     {
-        $$ = (char*)malloc(strlen($1) + strlen($3) + 2);
-        sprintf($$, "%s,%s", $1, $3);
+        // $$ = (char*)malloc(strlen($1) + strlen($3) + 2);
+        // sprintf($$, "%s,%s", $1, $3);
     }
     ;
 
@@ -258,10 +275,9 @@ function_definition:
 /////////////////////////////////////// PARAMETERS ///////////////////////////////////////
 
 
-parameter_list
-    : /* empty */                      { $$ = 0; } // TODO: change later
-    | parameter_declaration           { $$ = $1; }
-    | parameter_list ',' parameter_declaration { $$ = merge($1, $3); }
+parameter_list:
+    parameter_declaration           { $$ = $1; }
+    | parameter_list ',' parameter_declaration { $$ = $1; } // FIXME: change later de haga khara
     ;
 
 
@@ -352,7 +368,8 @@ loop_statement:
     // #####################################
 
     // eg. for (i = 0; i < 10; i++) printf("i is %d", i);
-    | FOR { symbolTable= new SymbolTable(symbolTable);} '(' expression_statement expression_statement expression ')' statement
+    /* | FOR { symbolTable= new SymbolTable(symbolTable);} '(' expression_statement expression_statement expression ')' statement */
+    | FOR '(' expression_statement expression_statement expression ')' statement
     ;
 
 /////////////////////////////////////// JUMP ///////////////////////////////////////
@@ -371,14 +388,14 @@ jump_statement
         // TODO: string functionName = (active functions) I would like to get the function name from the symbol table
         // TODO: we can have a vector of strings that contain all active functions (or stack)
         string functionName = "dummy"; // change later
-        SingleEntry * functionEntry = symbolTable->get_SingleEntry(functionName);
+        // SingleEntry * functionEntry = symbolTable->get_SingleEntry(functionName);
         
         // Im not sure that NULL de haga sah walla la
-        if (functionEntry->returnType != NULL) 
-        {
-            printf("[ERROR] Type mismatch in return statement\n");
-            ErrorToFile("Type mismatch in return statement");
-        }
+        // if (functionEntry->returnType != NULL) 
+        // {
+        //     printf("[ERROR] Type mismatch in return statement\n");
+        //     ErrorToFile("Type mismatch in return statement");
+        // }
 
     }
 
@@ -390,13 +407,13 @@ jump_statement
         // TODO: string functionName = (active functions) I would like to get the function name from the symbol table
         // TODO: we can have a vector of strings that contain all active functions (or stack)
         string functionName = "dummy"; // change later
-        SingleEntry * functionEntry = symbolTable->get_SingleEntry(functionName);
+        // SingleEntry * functionEntry = symbolTable->get_SingleEntry(functionName);
         
-        if (functionEntry->returnType != $2[0]->type) 
-        {
-            printf("[ERROR] Type mismatch in return statement\n");
-            ErrorToFile("Type mismatch in return statement");
-        }
+        // if (functionEntry->returnType != $2[0]->type) 
+        // {
+        //     printf("[ERROR] Type mismatch in return statement\n");
+        //     ErrorToFile("Type mismatch in return statement");
+        // }
     }
     ;
 
@@ -465,7 +482,6 @@ multiplicative_expression
     | multiplicative_expression '%' unary_expression
     ;
 
-// TODO: adeem
 /* unary_expression
     : primary_expression
     | '-' unary_expression %prec UMINUS
@@ -479,18 +495,18 @@ unary_expression
     | '-' unary_expression %prec UMINUS {
           // Create a new Value and apply negation
           $$ = $2;
-          $$->intVal = -$$->intVal;
+          $$.intVal = -$$.intVal;
       }
     | '+' unary_expression %prec UPLUS {
           $$ = $2;
       }
     | '!' unary_expression {
           $$ = $2;
-          $$->boolVal = !$$->boolVal;
+          $$.boolVal = !$$.boolVal;
       }
     | '~' unary_expression {
           $$ = $2;
-          $$->intVal = ~$$->intVal;
+          $$.intVal = ~$$.intVal;
       }
     ;
 
@@ -503,16 +519,16 @@ primary_expression
 
 %%
 
-void yyerror(char *s) {
+void yyerror(const char *s) {
     fprintf(stderr, "[ERROR] %s\n", s);
 }
 
 // Function to merge parameters from parameter_list
-Value* merge(Value* param1, Value* param2) {
+/* Value merge(Value param1, Value param2) {
     // Simple implementation - in a real compiler this would 
     // properly merge parameter information
     return param2; // Just return the second parameter for now
-}
+} */
 
 int main(void) {
     return yyparse();

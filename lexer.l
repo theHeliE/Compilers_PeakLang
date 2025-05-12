@@ -1,7 +1,16 @@
 %{
     #include "parser.tab.h"
     #include <stdlib.h>
-    void yyerror(char *);
+    #include <stdio.h>
+    #include <unistd.h>
+    #include <string.h>
+    #include <fcntl.h>
+    #include <io.h>
+
+    #define isatty(x) 0 
+    
+
+    void yyerror(const char *);
 %}
 
 %%
@@ -29,7 +38,6 @@
 
 "="         { return ASSIGNMENT; }
 
-// TODO: is this correct?
 "+"         { return '+'; }
 "-"         { return '-'; }
 "*"         { return '*'; }
