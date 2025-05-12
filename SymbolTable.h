@@ -19,6 +19,7 @@ struct SingleEntry
     void *value;
     bool isConst = false;
     bool isUsed = false; // To check if the variable is used or not
+    bool isError = false;
     queue<pair<dataType, string>> *args;
     dataType returnType;
 

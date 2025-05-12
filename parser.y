@@ -25,6 +25,7 @@ void yyerror(const char *s);
 int sym[26];
 
 SymbolTable *symbolTable = new SymbolTable();
+int isError = false;
 
 // Helper function to allocate memory for a Value's content
 void* allocateValueFromExpression(const Value& exprValue) {
@@ -199,7 +200,7 @@ variable_definition:
     // eg. int a, b, c;
     type_specifier identifier_list ';'
     {
-        printf("variable_declaration Rule 2\n");
+        printf("variable_declaration\n");
         symbolTable->insert($2, $1, NULL);
     }
 
@@ -215,6 +216,10 @@ variable_definition:
 
         if (allocated_val_ptr != nullptr) { 
             symbolTable->insert($2, $1, allocated_val_ptr); 
+            // check if there is an error in the symbol table
+            if (symbolTable->get_SingleEntry(getValueName($2))->isError) {
+                yyerror("btnadeeny tany leeeeh");
+            }
         } else {
              yyerror(("Failed to create value for assignment to variable " + getValueName($2)).c_str());
              symbolTable->insert($2, $1, nullptr); 
@@ -234,6 +239,10 @@ variable_definition:
 
         if (allocated_val_ptr != nullptr) { 
             symbolTable->insert($3, $2, allocated_val_ptr,true); 
+            // check if there is an error in the symbol table
+            if (symbolTable->get_SingleEntry(getValueName($3))->isError) {
+                yyerror("btnadeeny tany leeeeh");
+            }
         } else {
              yyerror(("Failed to create value for assignment to variable " + getValueName($2)).c_str());
              symbolTable->insert($2, $1, nullptr); 
@@ -447,9 +456,14 @@ assignment_expression:
         printf("Assignment expression\n");
         // $1 is IDENTIFIER, $3 is assignment_expression (Value)
 
+
         void* allocated_val_ptr = allocateValueFromExpression($3);
         if (allocated_val_ptr != nullptr) {
             symbolTable->update_Value(getValueName($1), allocated_val_ptr , $3.type);
+        // check if there is an error in the symbol table
+        if (symbolTable->get_SingleEntry(getValueName($1))->isError) {
+            yyerror("Matrakez ya 3aaam (pay attention noob)");
+        }
         } else {
             yyerror(("Failed to create value for assignment to variable " + getValueName($1)).c_str());
         }
@@ -558,6 +572,7 @@ primary_expression
 
 void yyerror(const char *s) {
     fprintf(stderr, "[ERROR] %s\n", s);
+    isError = true;
 }
 
 // Function to merge parameters from parameter_list
@@ -578,7 +593,9 @@ int main(int argc, char **argv) {
         fprintf(stderr, "No input file provided.\n");
         return 1;
     }
-       if (yyparse() == 0) {
+    yyparse();
+
+    if (!isError) {
         printf("Parsing completed successfully.\n");
         if (symbolTable->getParent() == NULL) {
             symbolTable->printTableToFile();
