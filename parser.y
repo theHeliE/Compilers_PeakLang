@@ -92,7 +92,7 @@ string enumToString (dataType enumType) {
 %token <val> BOOL 
 %token <val> TRUE
 %token <val> FALSE
-%token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN 
+%token <val> CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN 
 %token <val> THABET
 
 %token <val> ASSIGNMENT
@@ -119,6 +119,7 @@ string enumToString (dataType enumType) {
 %type <val> type_specifier
 %type <val> parameter_list
 %type <val> parameter_declaration
+%type <val> selection_statement
 
 
 
@@ -187,7 +188,7 @@ external_declaration:
     {
         printf("Variable definition\n");
     }
-    | expression_statement
+    | statement
     {
         printf("Expression statement\n");
     }
@@ -359,6 +360,9 @@ selection_statement:
     
     // eg. if (x == 5) printf("x is 5");
     IF '(' expression ')' statement %prec LOWER_THAN_ELSE
+    {
+        printf("Selection statement\n");
+    }
 
     // #####################################
 
