@@ -91,7 +91,8 @@ string enumToString (dataType enumType) {
 %token <val> BOOL 
 %token <val> TRUE
 %token <val> FALSE
-%token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
+%token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN 
+%token <val> THABET
 
 %token <val> ASSIGNMENT
 
@@ -221,13 +222,24 @@ variable_definition:
     // #####################################
 
     // eg. const int a, b, c = 5, d = 10;
-    | CONSTANT type_specifier identifier_list ASSIGNMENT expression ';'
+    | THABET type_specifier identifier_list ASSIGNMENT expression ';'
     {
         printf("variable_declaration Rule 3\n");
 
-        // symbolTable->insert($3, $2, $5[0]->value, true);
+         // $2 is type_specifier (Value), $3 is identifier_list (Value), $5 is expression (Value)
+        
+        void* allocated_val_ptr = allocateValueFromExpression($5); 
+
+        if (allocated_val_ptr != nullptr) { 
+            symbolTable->insert($3, $2, allocated_val_ptr,true); 
+            //symbolTable->update_Value(getValueName($3), allocated_val_ptr, $5.type);
+        } else {
+             yyerror(("Failed to create value for assignment to variable " + getValueName($2)).c_str());
+             symbolTable->insert($2, $1, nullptr); 
+        }
+
         // symbolTable->update_Func($3);
-        // symbolTable->printTable();
+        // symbolTable->printTable();   
     }
     ;
 
