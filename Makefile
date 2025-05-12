@@ -12,7 +12,7 @@ compiler.exe:
 	g++ SymbolTable.o lex.yy.o parser.tab.o -o compiler.exe -std=c++11 -static-libgcc -static-libstdc++
 
 test1: compiler.exe
-	./compiler.exe < tests/test1.txt
+	./compiler.exe ./tests/test1.txt
 
 test-all: test1
 

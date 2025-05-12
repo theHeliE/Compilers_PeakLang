@@ -530,6 +530,17 @@ void yyerror(const char *s) {
     return param2; // Just return the second parameter for now
 } */
 
-int main(void) {
+int main(int argc, char **argv) {
+    if (argc > 1) {
+        yyin = fopen(argv[1], "r");
+        if (!yyin) {
+            fprintf(stderr, "Error opening file: %s\n", argv[1]);
+            return 1;
+        }
+    } else {
+        fprintf(stderr, "No input file provided.\n");
+        return 1;
+    }
+
     return yyparse();
 }
