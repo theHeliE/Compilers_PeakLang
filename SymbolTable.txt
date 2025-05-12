@@ -1,6 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////
 Name                Type           isConst   isUsed              Value     
 ----------------------------------------------------------------------------------------
+io                  INT            true      true                19
 t                   CHAR           false     true                a
 f                   CHAR           false     true                h
 x                   CHAR           false     false               NULL

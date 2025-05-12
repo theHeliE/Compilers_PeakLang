@@ -36,6 +36,8 @@
 "continue"  { return CONTINUE; }
 "break"     { return BREAK; }
 "return"    { return RETURN; }
+"thabet"    { return THABET; }
+
 
 "="         { return ASSIGNMENT; }
 

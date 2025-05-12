@@ -71,18 +71,19 @@
      CONTINUE = 276,
      BREAK = 277,
      RETURN = 278,
-     ASSIGNMENT = 279,
-     AND_OP = 280,
-     OR_OP = 281,
-     EQ_OP = 282,
-     NE_OP = 283,
-     LE_OP = 284,
-     GE_OP = 285,
-     LEFT_OP = 286,
-     RIGHT_OP = 287,
-     UPLUS = 288,
-     UMINUS = 289,
-     LOWER_THAN_ELSE = 290
+     THABET = 279,
+     ASSIGNMENT = 280,
+     AND_OP = 281,
+     OR_OP = 282,
+     EQ_OP = 283,
+     NE_OP = 284,
+     LE_OP = 285,
+     GE_OP = 286,
+     LEFT_OP = 287,
+     RIGHT_OP = 288,
+     UPLUS = 289,
+     UMINUS = 290,
+     LOWER_THAN_ELSE = 291
    };
 #endif
 
@@ -106,7 +107,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 110 "parser.tab.h"
+#line 111 "parser.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
