@@ -10,6 +10,9 @@
 "float"     { return FLOAT; }
 "char"      { return CHAR; }
 "void"      { return VOID; }
+"bool"      { return BOOL; }
+"true"      { return TRUE; }
+"false"     { return FALSE; }
 
 "case"      { return CASE; }
 "default"   { return DEFAULT; }

@@ -54,7 +54,8 @@ typedef struct {
 
 /////////////////////////////////////// TOKENS ///////////////////////////////////////
 %token IDENTIFIER CONSTANT
-%token INT FLOAT CHAR VOID
+%token INT FLOAT CHAR VOID BOOL 
+%token TRUE FALSE
 %token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
 %token ASSIGNMENT
@@ -63,21 +64,21 @@ typedef struct {
 %type <stringVal> identifier_list
 
 // FIXME: 3ayzeen n3rf el values bta3 el type
-/* %type <val> expression
-%type <val> assignment_expression
-%type <val> logical_or_expression
-%type <val> logical_and_expression
-%type <val> inclusive_or_expression
-%type <val> exclusive_or_expression
-%type <val> and_expression
-%type <val> equality_expression
-%type <val> relational_expression
-%type <val> shift_expression
-%type <val> additive_expression
-%type <val> multiplicative_expression
-%type <val> unary_expression
-%type <val> primary_expression
-%type <val> type_specifier */
+%type <stringVal> expression
+%type <stringVal> assignment_expression
+%type <stringVal> logical_or_expression
+%type <stringVal> logical_and_expression
+%type <stringVal> inclusive_or_expression
+%type <stringVal> exclusive_or_expression
+%type <stringVal> and_expression
+%type <stringVal> equality_expression
+%type <stringVal> relational_expression
+%type <stringVal> shift_expression
+%type <stringVal> additive_expression
+%type <stringVal> multiplicative_expression
+%type <stringVal> unary_expression
+%type <stringVal> primary_expression
+%type <stringVal> type_specifier
 
 
 
@@ -218,6 +219,7 @@ type_specifier:
     | FLOAT
     | CHAR
     | VOID
+    | BOOL
     ;
 
 /////////////////////////////////////// FUNCTION DEFINITION ///////////////////////////////////////
