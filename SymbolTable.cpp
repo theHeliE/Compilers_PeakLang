@@ -18,7 +18,7 @@ void SymbolTable::insert(string name, dataType type, void *value, bool isConst, 
     {
         // ErrorToFile("Variable " + name + " already declared");
         // throw runtime_error("Variable " + name + " already declared");
-        cout << "ERROR: Variable " << name << " already declared" << endl;
+        cout << "ERROR: btnadeeny tany leeeeh btw ana " + name << endl;
         table[name]->isError = true;
         return;
     }
@@ -32,7 +32,7 @@ void SymbolTable::insert(string name, dataType type, void *value, bool isConst, 
         {
             // ErrorToFile("Function " + name + " already declared");
             // throw runtime_error("Function " + name + " already declared");
-            cout << "ERROR: Function " << name << " already declared" << endl;
+            cout << "ERROR: btnadeeny tany leeeeh btw ana " + name << endl;
             table[name]->isError = true;
             return;
         }

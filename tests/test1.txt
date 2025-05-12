@@ -1,6 +1,7 @@
 char x;
 char f = 'h';
 char t = 'a';
+char t = '6';
 thabet int io = 19;
 thabet char hazem = 'n';
 x = 'g';
