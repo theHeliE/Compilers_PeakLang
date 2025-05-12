@@ -55,6 +55,8 @@
 ">="        { return GE_OP; }
 "<<"        { return LEFT_OP; }
 ">>"        { return RIGHT_OP; }
+"<"         { return L_OP; }
+">"         { return G_OP; }
 
 ";"         { return ';'; }
 ","         { return ','; }

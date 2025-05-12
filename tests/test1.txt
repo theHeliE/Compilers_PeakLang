@@ -1,2 +1,3 @@
-int x;
+int x =5;
 int y = 10;
+bool z = x > y;

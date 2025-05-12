@@ -154,6 +154,7 @@ Quadruples * quadruples = new Quadruples();
 %token EQ_OP NE_OP
 %token LE_OP GE_OP
 %token LEFT_OP RIGHT_OP
+%token L_OP G_OP
 
 /* Operator precedence */
 
@@ -164,7 +165,7 @@ Quadruples * quadruples = new Quadruples();
 %left '^'
 %left '&'
 %left EQ_OP NE_OP
-%left '<' '>' LE_OP GE_OP
+%left L_OP G_OP LE_OP GE_OP
 %left LEFT_OP RIGHT_OP 
 
 %right UMINUS UPLUS '!' '~' 
@@ -540,14 +541,16 @@ and_expression
 
 equality_expression
     : relational_expression
-    | equality_expression EQ_OP relational_expression
+    | equality_expression EQ_OP relational_expression{
+        
+    }
     | equality_expression NE_OP relational_expression
     ;
 
 relational_expression
     : shift_expression
-    | relational_expression '<' shift_expression
-    | relational_expression '>' shift_expression
+    | relational_expression L_OP shift_expression
+    | relational_expression G_OP shift_expression
     | relational_expression LE_OP shift_expression
     | relational_expression GE_OP shift_expression
     ;
