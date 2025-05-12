@@ -72,6 +72,18 @@ string enumToString (dataType enumType) {
     }
 }
 
+// Helper function to convert a Value to its string representation
+string valueToString(const Value& val) {
+    switch (val.type) {
+        case INT_TYPE:    return std::to_string(val.intVal);
+        case FLOAT_TYPE:  return std::to_string(val.floatVal);
+        case STRING_TYPE: return val.stringVal ? string(val.stringVal) : ""; // Handle potential null
+        case BOOL_TYPE:   return val.boolVal ? "True" : "False";
+        case CHAR_TYPE:   return string(1, val.charVal); // Create string from char
+        default:          return ""; // Return empty string for unknown/unhandled types
+    }
+}
+
 
 ///// QUADRUPLES /////
 
@@ -243,6 +255,10 @@ variable_definition:
              yyerror(("Failed to create value for assignment to variable " + getValueName($2)).c_str());
              symbolTable->insert($2, $1, nullptr); 
         }
+
+        // handle quadruples - Format: (=, value, "", variable_name)
+        quadruples->addQuadruple("DECLARE", getValueName($2), "", "");
+        quadruples->addQuadruple("ASSIGN", valueToString($4), "", getValueName($2));
     }
 
     // #####################################
