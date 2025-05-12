@@ -2,11 +2,12 @@
 
 #include <vector>
 #include <string>
-#include "structs.h"
+#include "enums.h"
 
 using namespace std;
 
-class Quadruple {
+class Quadruple
+{
 public:
     string op;
     string arg1;
@@ -16,16 +17,16 @@ public:
     Quadruple(string op, string arg1, string arg2, string result);
 };
 
-class Quadruples {
+class Quadruples
+{
 public:
-    vector<Quadruple*> quadruples;
+    vector<Quadruple *> quadruples;
     int resultCounter = 0;
     int labelCounter = 0;
-    
-    char* typeAndValueToString(TypeAndValue* tv);
-    void addQuadruple(string op, TypeAndValue* arg1, TypeAndValue* arg2, string result = "");
+
+    void addQuadruple(string op, string arg1, string arg2, string result = "");
     void printQuadruples();
-    Quadruples* merge(Quadruples* mainQuadruples);
-    Quadruples* reverseMerge(Quadruples* mainQuadruples);
-    void printQuadruplesToFile(const std::string& filename);
+    Quadruples *merge(Quadruples *mainQuadruples);
+    Quadruples *reverseMerge(Quadruples *mainQuadruples);
+    void printQuadruplesToFile(const std::string &filename);
 };

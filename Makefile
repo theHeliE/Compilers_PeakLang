@@ -8,9 +8,10 @@ compiler.exe:
 	$(FLEX) lexer.l
 	g++ -c SymbolTable.cpp -o SymbolTable.o
 	g++ -c value_helpers.cpp -o value_helpers.o
+	g++ -c quadruples.cpp -o quadruples.o
 	g++ -c parser.tab.c -o parser.tab.o 
 	g++ -c lex.yy.c -o lex.yy.o
-	g++ SymbolTable.o value_helpers.o lex.yy.o parser.tab.o -o compiler.exe -std=c++11 -static-libgcc -static-libstdc++
+	g++ SymbolTable.o value_helpers.o quadruples.o lex.yy.o parser.tab.o -o compiler.exe -std=c++11 -static-libgcc -static-libstdc++
 
 test1: compiler.exe
 	./compiler.exe ./tests/test1.txt
@@ -21,4 +22,4 @@ counterexample:
 	$(BISON) -d -v parser.y -Wcounterexamples
 
 clean:
-	-rm -f compiler.exe parser.tab.c parser.tab.h lex.yy.c parser.tab.o lex.yy.o SymbolTable.o value_helpers.o
+	-rm -f compiler.exe parser.tab.c parser.tab.h lex.yy.c parser.tab.o lex.yy.o SymbolTable.o value_helpers.o quadruples.o

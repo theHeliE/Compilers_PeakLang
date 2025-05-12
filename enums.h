@@ -1,6 +1,7 @@
 #pragma once
 
-enum dataType {
+enum dataType
+{
     INT_TYPE,
     FLOAT_TYPE,
     STRING_TYPE,

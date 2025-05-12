@@ -10,6 +10,7 @@
 #include "enums.h"
 #include <fstream>
 #include "value_helpers.h"
+#include "quadruples.h"
 
 using namespace std;
 
@@ -26,25 +27,13 @@ struct SingleEntry
     SingleEntry(dataType type, void *value, bool isConst, queue<pair<dataType, string>> *args, dataType returnType, bool isUsed) : type(type), value(value), isConst(isConst), args(args), returnType(returnType), isUsed(isUsed) {}
 };
 
-// Add Quadruple structure
-struct Quadruple
-{
-    string op;
-    string arg1;
-    string arg2;
-    string result;
-
-    Quadruple(string op, string arg1, string arg2, string result)
-        : op(op), arg1(arg1), arg2(arg2), result(result) {}
-};
-
 class SymbolTable
 {
     unordered_map<string, SingleEntry *> table;
     SymbolTable *parent;
     vector<Quadruple> quadruples; // Store quadruples
-    void * value;
-    int tempVarCounter = 0;       // Counter for generating temporary variable names
+    void *value;
+    int tempVarCounter = 0; // Counter for generating temporary variable names
 public:
     SymbolTable(SymbolTable *parent = nullptr) : parent(parent) {}
 

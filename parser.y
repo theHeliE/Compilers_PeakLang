@@ -9,14 +9,18 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <vector>
+#include "quadruples.h"
 #include "SymbolTable.h"
 #include <utility>
 #include <queue>
-#include <vector>
 #include <string>
 #include <fstream>
 #include <iomanip>
 #include <cstring>
+
+using namespace std;
 
 extern FILE *yyin;
 int yylex(void);
@@ -67,6 +71,15 @@ string enumToString (dataType enumType) {
             return "UNKNOWN";
     }
 }
+
+
+///// QUADRUPLES /////
+
+Quadruples * quadruples = new Quadruples();
+
+// Notmally the "Main" quadruple is the current quadruple, when we enter a new scope, this temporarily changes.
+// Quadruples * currentQuadruple = quadruples;
+// vector<Quadruples*> quadrupleStack;
 
 %}
 
@@ -203,6 +216,11 @@ variable_definition:
     {
         printf("variable_declaration\n");
         symbolTable->insert($2, $1, NULL);
+
+        // handle quadruples
+        quadruples->addQuadruple("DECLARE", getValueName($2), "", "");
+
+
     }
 
     // #####################################
@@ -603,6 +621,8 @@ int main(int argc, char **argv) {
         printf("Parsing completed successfully.\n");
         if (symbolTable->getParent() == NULL) {
             symbolTable->printTableToFile();
+            // print quadruples
+            quadruples->printQuadruplesToFile("quadruples.txt");
         }
         return 0;
     } else {

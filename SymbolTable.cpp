@@ -1,4 +1,5 @@
 #include "SymbolTable.h"
+#include "quadruples.h"
 #include <iomanip>
 
 // extern void ErrorToFile(string msg);
@@ -113,7 +114,7 @@ void SymbolTable::update_Value(string name, void *value, dataType type)
             table[name]->isError = true;
             return;
         }
-    
+
         entry->isUsed = true;
         entry->value = value;
     }
