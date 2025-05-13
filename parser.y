@@ -35,33 +35,110 @@ int isError = false;
 // Returns a pair: {value, success_flag}
 std::pair<int, bool> resolve_operand_to_int(const Value& operand, SymbolTable* table) {
     // Check if it's an identifier that needs lookup
-    // Condition: has a name AND type is not one of the directly usable literal types
     if (operand.stringVal != nullptr && 
         (operand.type != INT_TYPE && operand.type != FLOAT_TYPE && 
-         operand.type != BOOL_TYPE && operand.type != CHAR_TYPE /* Removed check for non-existent CONSTANT_TYPE */)) {
+         operand.type != BOOL_TYPE && operand.type != CHAR_TYPE && 
+         operand.type != STRING_TYPE /* Added STRING_TYPE to avoid trying to resolve it as a number directly */)) {
         std::string varName(operand.stringVal);
         SingleEntry* entry = table->get_SingleEntry(varName);
-        if (entry && entry->value && entry->type == INT_TYPE) {
-            // printf("Debug: Resolved identifier '%s' to %d\n", varName.c_str(), *(static_cast<int*>(entry->value)));
-            return {*(static_cast<int*>(entry->value)), true};
+        if (entry && entry->value) { // Check entry and value exist
+            if (entry->type == INT_TYPE) {
+                return {*(static_cast<int*>(entry->value)), true};
+            } else if (entry->type == FLOAT_TYPE) {
+                return {(int)(*(static_cast<float*>(entry->value))), true}; // Truncate float
+            } else if (entry->type == CHAR_TYPE) {
+                return {(int)(*(static_cast<char*>(entry->value))), true}; // ASCII value
+            }
+            return {0, false}; // Identifier found but not a convertible type
         }
-        // yyerror(("Could not resolve identifier '" + varName + "' to INT or not found.").c_str());
-        return {0, false}; // Resolution failed or not an int
+        return {0, false}; // Resolution failed (not found or no value)
     } else if (operand.type == INT_TYPE) {
-        // Direct integer literal or already resolved constant of int type
-        // printf("Debug: Operand is direct INT value %d\n", operand.intVal);
         return {operand.intVal, true};
-    } else if (operand.type == UNKNOWN_TYPE && operand.intVal != 0 ) { // Fallback check for integer constants if lexer assigns UNKNOWN_TYPE but fills intVal
-        // This is a guess based on the presence of CONSTANT token; adjust if lexer behaves differently.
-         // Check if the value corresponds to the CONSTANT token itself, assuming lexer set intVal.
-         // A better approach is for the lexer to assign INT_TYPE to integer constants.
-         // printf("Debug: Operand is likely CONSTANT token (treated as INT) value %d\n", operand.intVal);
-        // return {operand.intVal, true}; // Temporarily disabling this fallback as it's uncertain
-         return {0, false}; 
+    } else if (operand.type == FLOAT_TYPE) {
+        return {(int)operand.floatVal, true}; // Truncate float
+    } else if (operand.type == CHAR_TYPE) {
+        return {(int)operand.charVal, true}; // ASCII value
+    } else if (operand.type == UNKNOWN_TYPE && operand.intVal != 0 && operand.stringVal == nullptr) { 
+        // This fallback is currently returning false as per existing code.
+        // If enabled, it would treat UNKNOWN_TYPE with intVal as an int.
+        // return {operand.intVal, true}; 
+        return {0, false}; 
     }
-    // yyerror(("Operand type '" + enumToString(operand.type) + "' not resolvable to INT directly.").c_str());
-    return {0, false}; // Not an int or recognized identifier pattern
+    return {0, false}; // Not an int, recognized identifier pattern, or directly convertible literal
 }
+
+// NEW: Helper function to resolve an operand to a float value
+// Returns a pair: {value, success_flag}
+std::pair<float, bool> resolve_operand_to_float(const Value& operand, SymbolTable* table) {
+    // Check if it's an identifier that needs lookup
+    if (operand.stringVal != nullptr && 
+        (operand.type != INT_TYPE && operand.type != FLOAT_TYPE && 
+         operand.type != BOOL_TYPE && operand.type != CHAR_TYPE && 
+         operand.type != STRING_TYPE)) {
+        std::string varName(operand.stringVal);
+        SingleEntry* entry = table->get_SingleEntry(varName);
+        if (entry && entry->value) { // Check entry and value exist
+            if (entry->type == FLOAT_TYPE) {
+                return {*(static_cast<float*>(entry->value)), true};
+            } else if (entry->type == INT_TYPE) {
+                return {(float)(*(static_cast<int*>(entry->value))), true}; // Promote int
+            } else if (entry->type == CHAR_TYPE) {
+                return {(float)(*(static_cast<char*>(entry->value))), true}; // Promote char (ASCII value to float)
+            }
+            return {0.0f, false}; // Identifier found but not a convertible type
+        }
+        return {0.0f, false}; // Resolution failed (not found or no value)
+    } else if (operand.type == FLOAT_TYPE) {
+        return {operand.floatVal, true};
+    } else if (operand.type == INT_TYPE) {
+        return {(float)operand.intVal, true}; // Promote int
+    } else if (operand.type == CHAR_TYPE) {
+        return {(float)operand.charVal, true}; // Promote char (ASCII value to float)
+    } else if (operand.type == UNKNOWN_TYPE && operand.stringVal == nullptr) {
+        // Fallback for UNKNOWN_TYPE, attempting to use floatVal or intVal
+        // This depends on how the lexer populates Value for unknown numeric constants
+        if (operand.floatVal != 0.0f) { // Check floatVal first
+            // return {operand.floatVal, true};
+            return {0.0f, false}; // Disabled for consistency with resolve_operand_to_int's UNKNOWN handling
+        } else if (operand.intVal != 0) { // Then check intVal and promote
+            // return {(float)operand.intVal, true};
+            return {0.0f, false}; // Disabled
+        }
+        return {0.0f, false};
+    }
+    return {0.0f, false}; // Not a float, recognized identifier pattern, or directly convertible literal
+}
+
+std::pair<char, bool> resolve_operand_to_char(const Value& operand, SymbolTable* table) {
+    // Check if it's an identifier that needs lookup
+    if (operand.stringVal != nullptr && 
+        (operand.type != INT_TYPE && operand.type != FLOAT_TYPE && 
+         operand.type != BOOL_TYPE && operand.type != CHAR_TYPE && 
+         operand.type != STRING_TYPE)) {
+        std::string varName(operand.stringVal);
+        SingleEntry* entry = table->get_SingleEntry(varName);
+        if (entry && entry->value) { // Check entry and value exist
+            if (entry->type == CHAR_TYPE) {
+                return {*(static_cast<char*>(entry->value)), true};
+            } else if (entry->type == INT_TYPE) {
+                // Assuming int value represents an ASCII code or similar small integer
+                return {(char)(*(static_cast<int*>(entry->value))), true}; 
+            }
+            // Add other potential promotions to char if needed, e.g., from a small float? Unlikely.
+            return {'\0', false}; // Identifier found but not a convertible type
+        }
+        return {'\0', false}; // Resolution failed (not found or no value)
+    } else if (operand.type == CHAR_TYPE) {
+        return {operand.charVal, true};
+    } else if (operand.type == INT_TYPE) {
+        // Direct int literal, cast to char
+        return {(char)operand.intVal, true};
+    }
+    // No UNKNOWN_TYPE fallback for char for now, as it's less clear how that would be represented
+    // unless operand.charVal was explicitly set by the lexer for an UNKNOWN_TYPE.
+    return {'\0', false}; // Not a char, recognized identifier pattern, or directly convertible literal
+}
+
 
 // Helper function to allocate memory for a Value's content
 void* allocateValueFromExpression(const Value& exprValue) {
@@ -580,9 +657,49 @@ and_expression
 equality_expression
     : relational_expression
     | equality_expression EQ_OP relational_expression{
-        
+
+        $$ = Value();
+        $$.type = BOOL_TYPE;
+        std::pair<float, bool> left_f = resolve_operand_to_float($1, symbolTable);
+        std::pair<float, bool> right_f = resolve_operand_to_float($3, symbolTable);
+
+        if (left_f.second && right_f.second) {
+            // printf("Debug: Comparing (float) %f < %f\n", left_f.first, right_f.first);
+            $$.boolVal = left_f.first == right_f.first;
+        } else {
+            std::pair<int, bool> left_i = resolve_operand_to_int($1, symbolTable);
+            std::pair<int, bool> right_i = resolve_operand_to_int($3, symbolTable);
+            if (left_i.second && right_i.second) {
+                // printf("Debug: Comparing (int) %d < %d\n", left_i.first, right_i.first);
+                $$.boolVal = left_i.first == right_i.first;
+            } else {
+                yyerror("Type error or unresolved identifier in '==' comparison. Operands not comparable as float or int.");
+                $$.boolVal = false; 
+            }
+        }
     }
     | equality_expression NE_OP relational_expression
+    {
+        $$ = Value();
+        $$.type = BOOL_TYPE;
+        std::pair<float, bool> left_f = resolve_operand_to_float($1, symbolTable);
+        std::pair<float, bool> right_f = resolve_operand_to_float($3, symbolTable);
+
+        if (left_f.second && right_f.second) {
+            // printf("Debug: Comparing (float) %f < %f\n", left_f.first, right_f.first);
+            $$.boolVal = left_f.first != right_f.first;
+        } else {
+            std::pair<int, bool> left_i = resolve_operand_to_int($1, symbolTable);
+            std::pair<int, bool> right_i = resolve_operand_to_int($3, symbolTable);
+            if (left_i.second && right_i.second) {
+                // printf("Debug: Comparing (int) %d < %d\n", left_i.first, right_i.first);
+                $$.boolVal = left_i.first != right_i.first;
+            } else {
+                yyerror("Type error or unresolved identifier in '!=' comparison. Operands not comparable as float or int.");
+                $$.boolVal = false; 
+            }
+        }
+    }
     ;
 
 relational_expression
@@ -590,57 +707,85 @@ relational_expression
     | relational_expression L_OP shift_expression {
         $$ = Value();
         $$.type = BOOL_TYPE;
-        std::pair<int, bool> left = resolve_operand_to_int($1, symbolTable);
-        std::pair<int, bool> right = resolve_operand_to_int($3, symbolTable);
+        std::pair<float, bool> left_f = resolve_operand_to_float($1, symbolTable);
+        std::pair<float, bool> right_f = resolve_operand_to_float($3, symbolTable);
 
-        if (left.second && right.second) {
-            printf("Debug: Comparing %d < %d\n", left.first, right.first);
-            $$.boolVal = left.first < right.first;
+        if (left_f.second && right_f.second) {
+            // printf("Debug: Comparing (float) %f < %f\n", left_f.first, right_f.first);
+            $$.boolVal = left_f.first < right_f.first;
         } else {
-            yyerror("Type error or unresolved identifier in '<' comparison.");
-            $$.boolVal = false; // Default to false on error
+            std::pair<int, bool> left_i = resolve_operand_to_int($1, symbolTable);
+            std::pair<int, bool> right_i = resolve_operand_to_int($3, symbolTable);
+            if (left_i.second && right_i.second) {
+                // printf("Debug: Comparing (int) %d < %d\n", left_i.first, right_i.first);
+                $$.boolVal = left_i.first < right_i.first;
+            } else {
+                yyerror("Type error or unresolved identifier in '<' comparison. Operands not comparable as float or int.");
+                $$.boolVal = false; 
+            }
         }
     }
     | relational_expression G_OP shift_expression {
         $$ = Value();
         $$.type = BOOL_TYPE;
-        std::pair<int, bool> left = resolve_operand_to_int($1, symbolTable);
-        std::pair<int, bool> right = resolve_operand_to_int($3, symbolTable);
+        std::pair<float, bool> left_f = resolve_operand_to_float($1, symbolTable);
+        std::pair<float, bool> right_f = resolve_operand_to_float($3, symbolTable);
 
-        if (left.second && right.second) {
-            printf("Debug: Comparing %d > %d\n", left.first, right.first);
-            $$.boolVal = left.first > right.first;
+        if (left_f.second && right_f.second) {
+            // printf("Debug: Comparing (float) %f > %f\n", left_f.first, right_f.first);
+            $$.boolVal = left_f.first > right_f.first;
         } else {
-            yyerror("Type error or unresolved identifier in '>' comparison.");
-            $$.boolVal = false;
+            std::pair<int, bool> left_i = resolve_operand_to_int($1, symbolTable);
+            std::pair<int, bool> right_i = resolve_operand_to_int($3, symbolTable);
+            if (left_i.second && right_i.second) {
+                // printf("Debug: Comparing (int) %d > %d\n", left_i.first, right_i.first);
+                $$.boolVal = left_i.first > right_i.first;
+            } else {
+                yyerror("Type error or unresolved identifier in '>' comparison. Operands not comparable as float or int.");
+                $$.boolVal = false;
+            }
         }
     }
     | relational_expression LE_OP shift_expression {
         $$ = Value();
         $$.type = BOOL_TYPE;
-        std::pair<int, bool> left = resolve_operand_to_int($1, symbolTable);
-        std::pair<int, bool> right = resolve_operand_to_int($3, symbolTable);
+        std::pair<float, bool> left_f = resolve_operand_to_float($1, symbolTable);
+        std::pair<float, bool> right_f = resolve_operand_to_float($3, symbolTable);
 
-        if (left.second && right.second) {
-            printf("Debug: Comparing %d <= %d\n", left.first, right.first);
-            $$.boolVal = left.first <= right.first;
+        if (left_f.second && right_f.second) {
+            // printf("Debug: Comparing (float) %f <= %f\n", left_f.first, right_f.first);
+            $$.boolVal = left_f.first <= right_f.first;
         } else {
-            yyerror("Type error or unresolved identifier in '<=' comparison.");
-            $$.boolVal = false;
+            std::pair<int, bool> left_i = resolve_operand_to_int($1, symbolTable);
+            std::pair<int, bool> right_i = resolve_operand_to_int($3, symbolTable);
+            if (left_i.second && right_i.second) {
+                // printf("Debug: Comparing (int) %d <= %d\n", left_i.first, right_i.first);
+                $$.boolVal = left_i.first <= right_i.first;
+            } else {
+                yyerror("Type error or unresolved identifier in '<=' comparison. Operands not comparable as float or int.");
+                $$.boolVal = false;
+            }
         }
     }
     | relational_expression GE_OP shift_expression {
         $$ = Value();
         $$.type = BOOL_TYPE;
-        std::pair<int, bool> left = resolve_operand_to_int($1, symbolTable);
-        std::pair<int, bool> right = resolve_operand_to_int($3, symbolTable);
+        std::pair<float, bool> left_f = resolve_operand_to_float($1, symbolTable);
+        std::pair<float, bool> right_f = resolve_operand_to_float($3, symbolTable);
 
-        if (left.second && right.second) {
-            printf("Debug: Comparing %d >= %d\n", left.first, right.first);
-            $$.boolVal = left.first >= right.first;
+        if (left_f.second && right_f.second) {
+            // printf("Debug: Comparing (float) %f >= %f\n", left_f.first, right_f.first);
+            $$.boolVal = left_f.first >= right_f.first;
         } else {
-            yyerror("Type error or unresolved identifier in '>=' comparison.");
-            $$.boolVal = false;
+            std::pair<int, bool> left_i = resolve_operand_to_int($1, symbolTable);
+            std::pair<int, bool> right_i = resolve_operand_to_int($3, symbolTable);
+            if (left_i.second && right_i.second) {
+                // printf("Debug: Comparing (int) %d >= %d\n", left_i.first, right_i.first);
+                $$.boolVal = left_i.first >= right_i.first;
+            } else {
+                yyerror("Type error or unresolved identifier in '>=' comparison. Operands not comparable as float or int.");
+                $$.boolVal = false;
+            }
         }
     }
     ;

@@ -98,33 +98,110 @@ int isError = false;
 // Returns a pair: {value, success_flag}
 std::pair<int, bool> resolve_operand_to_int(const Value& operand, SymbolTable* table) {
     // Check if it's an identifier that needs lookup
-    // Condition: has a name AND type is not one of the directly usable literal types
     if (operand.stringVal != nullptr && 
         (operand.type != INT_TYPE && operand.type != FLOAT_TYPE && 
-         operand.type != BOOL_TYPE && operand.type != CHAR_TYPE /* Removed check for non-existent CONSTANT_TYPE */)) {
+         operand.type != BOOL_TYPE && operand.type != CHAR_TYPE && 
+         operand.type != STRING_TYPE /* Added STRING_TYPE to avoid trying to resolve it as a number directly */)) {
         std::string varName(operand.stringVal);
         SingleEntry* entry = table->get_SingleEntry(varName);
-        if (entry && entry->value && entry->type == INT_TYPE) {
-            // printf("Debug: Resolved identifier '%s' to %d\n", varName.c_str(), *(static_cast<int*>(entry->value)));
-            return {*(static_cast<int*>(entry->value)), true};
+        if (entry && entry->value) { // Check entry and value exist
+            if (entry->type == INT_TYPE) {
+                return {*(static_cast<int*>(entry->value)), true};
+            } else if (entry->type == FLOAT_TYPE) {
+                return {(int)(*(static_cast<float*>(entry->value))), true}; // Truncate float
+            } else if (entry->type == CHAR_TYPE) {
+                return {(int)(*(static_cast<char*>(entry->value))), true}; // ASCII value
+            }
+            return {0, false}; // Identifier found but not a convertible type
         }
-        // yyerror(("Could not resolve identifier '" + varName + "' to INT or not found.").c_str());
-        return {0, false}; // Resolution failed or not an int
+        return {0, false}; // Resolution failed (not found or no value)
     } else if (operand.type == INT_TYPE) {
-        // Direct integer literal or already resolved constant of int type
-        // printf("Debug: Operand is direct INT value %d\n", operand.intVal);
         return {operand.intVal, true};
-    } else if (operand.type == UNKNOWN_TYPE && operand.intVal != 0 ) { // Fallback check for integer constants if lexer assigns UNKNOWN_TYPE but fills intVal
-        // This is a guess based on the presence of CONSTANT token; adjust if lexer behaves differently.
-         // Check if the value corresponds to the CONSTANT token itself, assuming lexer set intVal.
-         // A better approach is for the lexer to assign INT_TYPE to integer constants.
-         // printf("Debug: Operand is likely CONSTANT token (treated as INT) value %d\n", operand.intVal);
-        // return {operand.intVal, true}; // Temporarily disabling this fallback as it's uncertain
-         return {0, false}; 
+    } else if (operand.type == FLOAT_TYPE) {
+        return {(int)operand.floatVal, true}; // Truncate float
+    } else if (operand.type == CHAR_TYPE) {
+        return {(int)operand.charVal, true}; // ASCII value
+    } else if (operand.type == UNKNOWN_TYPE && operand.intVal != 0 && operand.stringVal == nullptr) { 
+        // This fallback is currently returning false as per existing code.
+        // If enabled, it would treat UNKNOWN_TYPE with intVal as an int.
+        // return {operand.intVal, true}; 
+        return {0, false}; 
     }
-    // yyerror(("Operand type '" + enumToString(operand.type) + "' not resolvable to INT directly.").c_str());
-    return {0, false}; // Not an int or recognized identifier pattern
+    return {0, false}; // Not an int, recognized identifier pattern, or directly convertible literal
 }
+
+// NEW: Helper function to resolve an operand to a float value
+// Returns a pair: {value, success_flag}
+std::pair<float, bool> resolve_operand_to_float(const Value& operand, SymbolTable* table) {
+    // Check if it's an identifier that needs lookup
+    if (operand.stringVal != nullptr && 
+        (operand.type != INT_TYPE && operand.type != FLOAT_TYPE && 
+         operand.type != BOOL_TYPE && operand.type != CHAR_TYPE && 
+         operand.type != STRING_TYPE)) {
+        std::string varName(operand.stringVal);
+        SingleEntry* entry = table->get_SingleEntry(varName);
+        if (entry && entry->value) { // Check entry and value exist
+            if (entry->type == FLOAT_TYPE) {
+                return {*(static_cast<float*>(entry->value)), true};
+            } else if (entry->type == INT_TYPE) {
+                return {(float)(*(static_cast<int*>(entry->value))), true}; // Promote int
+            } else if (entry->type == CHAR_TYPE) {
+                return {(float)(*(static_cast<char*>(entry->value))), true}; // Promote char (ASCII value to float)
+            }
+            return {0.0f, false}; // Identifier found but not a convertible type
+        }
+        return {0.0f, false}; // Resolution failed (not found or no value)
+    } else if (operand.type == FLOAT_TYPE) {
+        return {operand.floatVal, true};
+    } else if (operand.type == INT_TYPE) {
+        return {(float)operand.intVal, true}; // Promote int
+    } else if (operand.type == CHAR_TYPE) {
+        return {(float)operand.charVal, true}; // Promote char (ASCII value to float)
+    } else if (operand.type == UNKNOWN_TYPE && operand.stringVal == nullptr) {
+        // Fallback for UNKNOWN_TYPE, attempting to use floatVal or intVal
+        // This depends on how the lexer populates Value for unknown numeric constants
+        if (operand.floatVal != 0.0f) { // Check floatVal first
+            // return {operand.floatVal, true};
+            return {0.0f, false}; // Disabled for consistency with resolve_operand_to_int's UNKNOWN handling
+        } else if (operand.intVal != 0) { // Then check intVal and promote
+            // return {(float)operand.intVal, true};
+            return {0.0f, false}; // Disabled
+        }
+        return {0.0f, false};
+    }
+    return {0.0f, false}; // Not a float, recognized identifier pattern, or directly convertible literal
+}
+
+std::pair<char, bool> resolve_operand_to_char(const Value& operand, SymbolTable* table) {
+    // Check if it's an identifier that needs lookup
+    if (operand.stringVal != nullptr && 
+        (operand.type != INT_TYPE && operand.type != FLOAT_TYPE && 
+         operand.type != BOOL_TYPE && operand.type != CHAR_TYPE && 
+         operand.type != STRING_TYPE)) {
+        std::string varName(operand.stringVal);
+        SingleEntry* entry = table->get_SingleEntry(varName);
+        if (entry && entry->value) { // Check entry and value exist
+            if (entry->type == CHAR_TYPE) {
+                return {*(static_cast<char*>(entry->value)), true};
+            } else if (entry->type == INT_TYPE) {
+                // Assuming int value represents an ASCII code or similar small integer
+                return {(char)(*(static_cast<int*>(entry->value))), true}; 
+            }
+            // Add other potential promotions to char if needed, e.g., from a small float? Unlikely.
+            return {'\0', false}; // Identifier found but not a convertible type
+        }
+        return {'\0', false}; // Resolution failed (not found or no value)
+    } else if (operand.type == CHAR_TYPE) {
+        return {operand.charVal, true};
+    } else if (operand.type == INT_TYPE) {
+        // Direct int literal, cast to char
+        return {(char)operand.intVal, true};
+    }
+    // No UNKNOWN_TYPE fallback for char for now, as it's less clear how that would be represented
+    // unless operand.charVal was explicitly set by the lexer for an UNKNOWN_TYPE.
+    return {'\0', false}; // Not a char, recognized identifier pattern, or directly convertible literal
+}
+
 
 // Helper function to allocate memory for a Value's content
 void* allocateValueFromExpression(const Value& exprValue) {
@@ -191,7 +268,7 @@ Quadruples * quadruples = new Quadruples();
 
 
 /* Line 189 of yacc.c  */
-#line 195 "parser.tab.c"
+#line 272 "parser.tab.c"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -221,7 +298,7 @@ Quadruples * quadruples = new Quadruples();
 
 
 /* Line 209 of yacc.c  */
-#line 225 "parser.tab.c"
+#line 302 "parser.tab.c"
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -275,7 +352,7 @@ typedef union YYSTYPE
 {
 
 /* Line 214 of yacc.c  */
-#line 131 "parser.y"
+#line 208 "parser.y"
 
     int intVal;
     float floatVal;
@@ -288,7 +365,7 @@ typedef union YYSTYPE
 
 
 /* Line 214 of yacc.c  */
-#line 292 "parser.tab.c"
+#line 369 "parser.tab.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -300,7 +377,7 @@ typedef union YYSTYPE
 
 
 /* Line 264 of yacc.c  */
-#line 304 "parser.tab.c"
+#line 381 "parser.tab.c"
 
 #ifdef short
 # undef short
@@ -624,16 +701,16 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   214,   214,   218,   225,   229,   241,   245,   249,   260,
-     275,   301,   335,   343,   354,   355,   356,   357,   358,   362,
-     365,   375,   384,   385,   392,   396,   397,   401,   402,   406,
-     407,   413,   414,   422,   423,   424,   425,   426,   435,   443,
-     450,   454,   455,   459,   460,   469,   474,   480,   487,   488,
-     489,   493,   512,   531,   532,   556,   557,   561,   562,   566,
-     567,   571,   572,   576,   577,   581,   582,   585,   589,   590,
-     604,   618,   632,   649,   650,   651,   655,   656,   657,   661,
-     662,   663,   664,   676,   677,   682,   685,   689,   697,   738,
-     739,   740,   741
+       0,   291,   291,   295,   302,   306,   318,   322,   326,   337,
+     352,   378,   412,   420,   431,   432,   433,   434,   435,   439,
+     442,   452,   461,   462,   469,   473,   474,   478,   479,   483,
+     484,   490,   491,   499,   500,   501,   502,   503,   512,   520,
+     527,   531,   532,   536,   537,   546,   551,   557,   564,   565,
+     566,   570,   589,   608,   609,   633,   634,   638,   639,   643,
+     644,   648,   649,   653,   654,   658,   659,   681,   706,   707,
+     728,   749,   770,   794,   795,   796,   800,   801,   802,   806,
+     807,   808,   809,   821,   822,   827,   830,   834,   842,   883,
+     884,   885,   886
 };
 #endif
 
@@ -1699,7 +1776,7 @@ yyreduce:
         case 2:
 
 /* Line 1455 of yacc.c  */
-#line 215 "parser.y"
+#line 292 "parser.y"
     { 
         printf("Main program\n"); 
     ;}
@@ -1708,7 +1785,7 @@ yyreduce:
   case 3:
 
 /* Line 1455 of yacc.c  */
-#line 219 "parser.y"
+#line 296 "parser.y"
     { 
         // ErrorToFile("Syntax Error"); YYABORT; 
         printf("Feh errors ya man\n");  YYABORT; 
@@ -1718,7 +1795,7 @@ yyreduce:
   case 4:
 
 /* Line 1455 of yacc.c  */
-#line 226 "parser.y"
+#line 303 "parser.y"
     {
         printf("Program\n");
     ;}
@@ -1727,7 +1804,7 @@ yyreduce:
   case 5:
 
 /* Line 1455 of yacc.c  */
-#line 230 "parser.y"
+#line 307 "parser.y"
     {
         printf("Program with external declarations\n");
     ;}
@@ -1736,7 +1813,7 @@ yyreduce:
   case 6:
 
 /* Line 1455 of yacc.c  */
-#line 242 "parser.y"
+#line 319 "parser.y"
     {
         printf("Function definition\n");
     ;}
@@ -1745,7 +1822,7 @@ yyreduce:
   case 7:
 
 /* Line 1455 of yacc.c  */
-#line 246 "parser.y"
+#line 323 "parser.y"
     {
         printf("Variable definition\n");
     ;}
@@ -1754,7 +1831,7 @@ yyreduce:
   case 8:
 
 /* Line 1455 of yacc.c  */
-#line 250 "parser.y"
+#line 327 "parser.y"
     {
         printf("Expression statement\n");
     ;}
@@ -1763,7 +1840,7 @@ yyreduce:
   case 9:
 
 /* Line 1455 of yacc.c  */
-#line 261 "parser.y"
+#line 338 "parser.y"
     {
         printf("variable_declaration\n");
         symbolTable->insert((yyvsp[(2) - (3)].val), (yyvsp[(1) - (3)].val), NULL);
@@ -1778,7 +1855,7 @@ yyreduce:
   case 10:
 
 /* Line 1455 of yacc.c  */
-#line 276 "parser.y"
+#line 353 "parser.y"
     {
            if (getValueName((yyvsp[(1) - (5)].val))!=enumToString((yyvsp[(4) - (5)].val).type)) {
             yyerror("Elet adab walahy :/, Type mismatch in variable declaration");
@@ -1805,7 +1882,7 @@ yyreduce:
   case 11:
 
 /* Line 1455 of yacc.c  */
-#line 302 "parser.y"
+#line 379 "parser.y"
     {
         printf("variable_declaration Rule 3\n");
             if (getValueName((yyvsp[(2) - (6)].val))!=enumToString((yyvsp[(5) - (6)].val).type)) {
@@ -1837,7 +1914,7 @@ yyreduce:
   case 12:
 
 /* Line 1455 of yacc.c  */
-#line 336 "parser.y"
+#line 413 "parser.y"
     {
         (yyval.val) = (yyvsp[(1) - (1)].val);
     ;}
@@ -1846,7 +1923,7 @@ yyreduce:
   case 13:
 
 /* Line 1455 of yacc.c  */
-#line 344 "parser.y"
+#line 421 "parser.y"
     {
         // $$ = (char*)malloc(strlen($1) + strlen($3) + 2);
         // sprintf($$, "%s,%s", $1, $3);
@@ -1856,42 +1933,42 @@ yyreduce:
   case 14:
 
 /* Line 1455 of yacc.c  */
-#line 354 "parser.y"
+#line 431 "parser.y"
     { (yyval.val).stringVal = "INT"; ;}
     break;
 
   case 15:
 
 /* Line 1455 of yacc.c  */
-#line 355 "parser.y"
+#line 432 "parser.y"
     { (yyval.val).stringVal = "FLOAT"; ;}
     break;
 
   case 16:
 
 /* Line 1455 of yacc.c  */
-#line 356 "parser.y"
+#line 433 "parser.y"
     { (yyval.val).stringVal = "CHAR"; ;}
     break;
 
   case 17:
 
 /* Line 1455 of yacc.c  */
-#line 357 "parser.y"
+#line 434 "parser.y"
     { (yyval.val).stringVal = "VOID";;}
     break;
 
   case 18:
 
 /* Line 1455 of yacc.c  */
-#line 358 "parser.y"
+#line 435 "parser.y"
     { (yyval.val).stringVal = "BOOL"; ;}
     break;
 
   case 19:
 
 /* Line 1455 of yacc.c  */
-#line 362 "parser.y"
+#line 439 "parser.y"
     {
         printf("Assignment Expression\n");
     ;}
@@ -1900,21 +1977,21 @@ yyreduce:
   case 22:
 
 /* Line 1455 of yacc.c  */
-#line 384 "parser.y"
+#line 461 "parser.y"
     { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
     break;
 
   case 23:
 
 /* Line 1455 of yacc.c  */
-#line 385 "parser.y"
+#line 462 "parser.y"
     { (yyval.val) = (yyvsp[(1) - (3)].val); ;}
     break;
 
   case 38:
 
 /* Line 1455 of yacc.c  */
-#line 436 "parser.y"
+#line 513 "parser.y"
     {
         printf("Selection statement\n");
     ;}
@@ -1923,7 +2000,7 @@ yyreduce:
   case 51:
 
 /* Line 1455 of yacc.c  */
-#line 494 "parser.y"
+#line 571 "parser.y"
     {
        // check if the function is returning a value with same type
         // TODO: string functionName = (active functions) I would like to get the function name from the symbol table
@@ -1944,7 +2021,7 @@ yyreduce:
   case 52:
 
 /* Line 1455 of yacc.c  */
-#line 513 "parser.y"
+#line 590 "parser.y"
     {
         // check if the function is returning a value with same type
         // TODO: string functionName = (active functions) I would like to get the function name from the symbol table
@@ -1963,7 +2040,7 @@ yyreduce:
   case 54:
 
 /* Line 1455 of yacc.c  */
-#line 532 "parser.y"
+#line 609 "parser.y"
     {
         printf("Assignment expression\n");
         // $1 is IDENTIFIER, $3 is assignment_expression (Value)
@@ -1987,35 +2064,88 @@ yyreduce:
   case 66:
 
 /* Line 1455 of yacc.c  */
-#line 582 "parser.y"
+#line 659 "parser.y"
     {
-        
+
+        (yyval.val) = Value();
+        (yyval.val).type = BOOL_TYPE;
+        std::pair<float, bool> left_f = resolve_operand_to_float((yyvsp[(1) - (3)].val), symbolTable);
+        std::pair<float, bool> right_f = resolve_operand_to_float((yyvsp[(3) - (3)].val), symbolTable);
+
+        if (left_f.second && right_f.second) {
+            // printf("Debug: Comparing (float) %f < %f\n", left_f.first, right_f.first);
+            (yyval.val).boolVal = left_f.first == right_f.first;
+        } else {
+            std::pair<int, bool> left_i = resolve_operand_to_int((yyvsp[(1) - (3)].val), symbolTable);
+            std::pair<int, bool> right_i = resolve_operand_to_int((yyvsp[(3) - (3)].val), symbolTable);
+            if (left_i.second && right_i.second) {
+                // printf("Debug: Comparing (int) %d < %d\n", left_i.first, right_i.first);
+                (yyval.val).boolVal = left_i.first == right_i.first;
+            } else {
+                yyerror("Type error or unresolved identifier in '==' comparison. Operands not comparable as float or int.");
+                (yyval.val).boolVal = false; 
+            }
+        }
+    ;}
+    break;
+
+  case 67:
+
+/* Line 1455 of yacc.c  */
+#line 682 "parser.y"
+    {
+        (yyval.val) = Value();
+        (yyval.val).type = BOOL_TYPE;
+        std::pair<float, bool> left_f = resolve_operand_to_float((yyvsp[(1) - (3)].val), symbolTable);
+        std::pair<float, bool> right_f = resolve_operand_to_float((yyvsp[(3) - (3)].val), symbolTable);
+
+        if (left_f.second && right_f.second) {
+            // printf("Debug: Comparing (float) %f < %f\n", left_f.first, right_f.first);
+            (yyval.val).boolVal = left_f.first != right_f.first;
+        } else {
+            std::pair<int, bool> left_i = resolve_operand_to_int((yyvsp[(1) - (3)].val), symbolTable);
+            std::pair<int, bool> right_i = resolve_operand_to_int((yyvsp[(3) - (3)].val), symbolTable);
+            if (left_i.second && right_i.second) {
+                // printf("Debug: Comparing (int) %d < %d\n", left_i.first, right_i.first);
+                (yyval.val).boolVal = left_i.first != right_i.first;
+            } else {
+                yyerror("Type error or unresolved identifier in '!=' comparison. Operands not comparable as float or int.");
+                (yyval.val).boolVal = false; 
+            }
+        }
     ;}
     break;
 
   case 68:
 
 /* Line 1455 of yacc.c  */
-#line 589 "parser.y"
+#line 706 "parser.y"
     { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
     break;
 
   case 69:
 
 /* Line 1455 of yacc.c  */
-#line 590 "parser.y"
+#line 707 "parser.y"
     {
         (yyval.val) = Value();
         (yyval.val).type = BOOL_TYPE;
-        std::pair<int, bool> left = resolve_operand_to_int((yyvsp[(1) - (3)].val), symbolTable);
-        std::pair<int, bool> right = resolve_operand_to_int((yyvsp[(3) - (3)].val), symbolTable);
+        std::pair<float, bool> left_f = resolve_operand_to_float((yyvsp[(1) - (3)].val), symbolTable);
+        std::pair<float, bool> right_f = resolve_operand_to_float((yyvsp[(3) - (3)].val), symbolTable);
 
-        if (left.second && right.second) {
-            printf("Debug: Comparing %d < %d\n", left.first, right.first);
-            (yyval.val).boolVal = left.first < right.first;
+        if (left_f.second && right_f.second) {
+            // printf("Debug: Comparing (float) %f < %f\n", left_f.first, right_f.first);
+            (yyval.val).boolVal = left_f.first < right_f.first;
         } else {
-            yyerror("Type error or unresolved identifier in '<' comparison.");
-            (yyval.val).boolVal = false; // Default to false on error
+            std::pair<int, bool> left_i = resolve_operand_to_int((yyvsp[(1) - (3)].val), symbolTable);
+            std::pair<int, bool> right_i = resolve_operand_to_int((yyvsp[(3) - (3)].val), symbolTable);
+            if (left_i.second && right_i.second) {
+                // printf("Debug: Comparing (int) %d < %d\n", left_i.first, right_i.first);
+                (yyval.val).boolVal = left_i.first < right_i.first;
+            } else {
+                yyerror("Type error or unresolved identifier in '<' comparison. Operands not comparable as float or int.");
+                (yyval.val).boolVal = false; 
+            }
         }
     ;}
     break;
@@ -2023,19 +2153,26 @@ yyreduce:
   case 70:
 
 /* Line 1455 of yacc.c  */
-#line 604 "parser.y"
+#line 728 "parser.y"
     {
         (yyval.val) = Value();
         (yyval.val).type = BOOL_TYPE;
-        std::pair<int, bool> left = resolve_operand_to_int((yyvsp[(1) - (3)].val), symbolTable);
-        std::pair<int, bool> right = resolve_operand_to_int((yyvsp[(3) - (3)].val), symbolTable);
+        std::pair<float, bool> left_f = resolve_operand_to_float((yyvsp[(1) - (3)].val), symbolTable);
+        std::pair<float, bool> right_f = resolve_operand_to_float((yyvsp[(3) - (3)].val), symbolTable);
 
-        if (left.second && right.second) {
-            printf("Debug: Comparing %d > %d\n", left.first, right.first);
-            (yyval.val).boolVal = left.first > right.first;
+        if (left_f.second && right_f.second) {
+            // printf("Debug: Comparing (float) %f > %f\n", left_f.first, right_f.first);
+            (yyval.val).boolVal = left_f.first > right_f.first;
         } else {
-            yyerror("Type error or unresolved identifier in '>' comparison.");
-            (yyval.val).boolVal = false;
+            std::pair<int, bool> left_i = resolve_operand_to_int((yyvsp[(1) - (3)].val), symbolTable);
+            std::pair<int, bool> right_i = resolve_operand_to_int((yyvsp[(3) - (3)].val), symbolTable);
+            if (left_i.second && right_i.second) {
+                // printf("Debug: Comparing (int) %d > %d\n", left_i.first, right_i.first);
+                (yyval.val).boolVal = left_i.first > right_i.first;
+            } else {
+                yyerror("Type error or unresolved identifier in '>' comparison. Operands not comparable as float or int.");
+                (yyval.val).boolVal = false;
+            }
         }
     ;}
     break;
@@ -2043,19 +2180,26 @@ yyreduce:
   case 71:
 
 /* Line 1455 of yacc.c  */
-#line 618 "parser.y"
+#line 749 "parser.y"
     {
         (yyval.val) = Value();
         (yyval.val).type = BOOL_TYPE;
-        std::pair<int, bool> left = resolve_operand_to_int((yyvsp[(1) - (3)].val), symbolTable);
-        std::pair<int, bool> right = resolve_operand_to_int((yyvsp[(3) - (3)].val), symbolTable);
+        std::pair<float, bool> left_f = resolve_operand_to_float((yyvsp[(1) - (3)].val), symbolTable);
+        std::pair<float, bool> right_f = resolve_operand_to_float((yyvsp[(3) - (3)].val), symbolTable);
 
-        if (left.second && right.second) {
-            printf("Debug: Comparing %d <= %d\n", left.first, right.first);
-            (yyval.val).boolVal = left.first <= right.first;
+        if (left_f.second && right_f.second) {
+            // printf("Debug: Comparing (float) %f <= %f\n", left_f.first, right_f.first);
+            (yyval.val).boolVal = left_f.first <= right_f.first;
         } else {
-            yyerror("Type error or unresolved identifier in '<=' comparison.");
-            (yyval.val).boolVal = false;
+            std::pair<int, bool> left_i = resolve_operand_to_int((yyvsp[(1) - (3)].val), symbolTable);
+            std::pair<int, bool> right_i = resolve_operand_to_int((yyvsp[(3) - (3)].val), symbolTable);
+            if (left_i.second && right_i.second) {
+                // printf("Debug: Comparing (int) %d <= %d\n", left_i.first, right_i.first);
+                (yyval.val).boolVal = left_i.first <= right_i.first;
+            } else {
+                yyerror("Type error or unresolved identifier in '<=' comparison. Operands not comparable as float or int.");
+                (yyval.val).boolVal = false;
+            }
         }
     ;}
     break;
@@ -2063,19 +2207,26 @@ yyreduce:
   case 72:
 
 /* Line 1455 of yacc.c  */
-#line 632 "parser.y"
+#line 770 "parser.y"
     {
         (yyval.val) = Value();
         (yyval.val).type = BOOL_TYPE;
-        std::pair<int, bool> left = resolve_operand_to_int((yyvsp[(1) - (3)].val), symbolTable);
-        std::pair<int, bool> right = resolve_operand_to_int((yyvsp[(3) - (3)].val), symbolTable);
+        std::pair<float, bool> left_f = resolve_operand_to_float((yyvsp[(1) - (3)].val), symbolTable);
+        std::pair<float, bool> right_f = resolve_operand_to_float((yyvsp[(3) - (3)].val), symbolTable);
 
-        if (left.second && right.second) {
-            printf("Debug: Comparing %d >= %d\n", left.first, right.first);
-            (yyval.val).boolVal = left.first >= right.first;
+        if (left_f.second && right_f.second) {
+            // printf("Debug: Comparing (float) %f >= %f\n", left_f.first, right_f.first);
+            (yyval.val).boolVal = left_f.first >= right_f.first;
         } else {
-            yyerror("Type error or unresolved identifier in '>=' comparison.");
-            (yyval.val).boolVal = false;
+            std::pair<int, bool> left_i = resolve_operand_to_int((yyvsp[(1) - (3)].val), symbolTable);
+            std::pair<int, bool> right_i = resolve_operand_to_int((yyvsp[(3) - (3)].val), symbolTable);
+            if (left_i.second && right_i.second) {
+                // printf("Debug: Comparing (int) %d >= %d\n", left_i.first, right_i.first);
+                (yyval.val).boolVal = left_i.first >= right_i.first;
+            } else {
+                yyerror("Type error or unresolved identifier in '>=' comparison. Operands not comparable as float or int.");
+                (yyval.val).boolVal = false;
+            }
         }
     ;}
     break;
@@ -2083,14 +2234,14 @@ yyreduce:
   case 83:
 
 /* Line 1455 of yacc.c  */
-#line 676 "parser.y"
+#line 821 "parser.y"
     { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
     break;
 
   case 84:
 
 /* Line 1455 of yacc.c  */
-#line 677 "parser.y"
+#line 822 "parser.y"
     {
           // Create a new Value and apply negation
           (yyval.val) = (yyvsp[(2) - (2)].val);
@@ -2101,7 +2252,7 @@ yyreduce:
   case 85:
 
 /* Line 1455 of yacc.c  */
-#line 682 "parser.y"
+#line 827 "parser.y"
     {
           (yyval.val) = (yyvsp[(2) - (2)].val);
       ;}
@@ -2110,7 +2261,7 @@ yyreduce:
   case 86:
 
 /* Line 1455 of yacc.c  */
-#line 685 "parser.y"
+#line 830 "parser.y"
     {
           (yyval.val) = (yyvsp[(2) - (2)].val);
           (yyval.val).boolVal = !(yyval.val).boolVal;
@@ -2120,7 +2271,7 @@ yyreduce:
   case 87:
 
 /* Line 1455 of yacc.c  */
-#line 689 "parser.y"
+#line 834 "parser.y"
     {
           (yyval.val) = (yyvsp[(2) - (2)].val);
           (yyval.val).intVal = ~(yyval.val).intVal;
@@ -2130,7 +2281,7 @@ yyreduce:
   case 88:
 
 /* Line 1455 of yacc.c  */
-#line 697 "parser.y"
+#line 842 "parser.y"
     { 
          (yyval.val) = Value();
         SingleEntry* entry = symbolTable->get_SingleEntry(getValueName((yyvsp[(1) - (1)].val)));
@@ -2177,35 +2328,35 @@ yyreduce:
   case 89:
 
 /* Line 1455 of yacc.c  */
-#line 738 "parser.y"
+#line 883 "parser.y"
     { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
     break;
 
   case 90:
 
 /* Line 1455 of yacc.c  */
-#line 739 "parser.y"
+#line 884 "parser.y"
     { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
     break;
 
   case 91:
 
 /* Line 1455 of yacc.c  */
-#line 740 "parser.y"
+#line 885 "parser.y"
     { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
     break;
 
   case 92:
 
 /* Line 1455 of yacc.c  */
-#line 741 "parser.y"
+#line 886 "parser.y"
     { (yyval.val) = (yyvsp[(2) - (3)].val); ;}
     break;
 
 
 
 /* Line 1455 of yacc.c  */
-#line 2209 "parser.tab.c"
+#line 2360 "parser.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2417,7 +2568,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 744 "parser.y"
+#line 889 "parser.y"
 
 
 void yyerror(const char *s) {

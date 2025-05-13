@@ -1,7 +1,7 @@
 BISON = "C:/MinGW/GnuWin32/bin/bison"
 FLEX = "C:/MinGW/GnuWin32/bin/flex"
 
-all: compiler.exe
+all: clean compiler.exe
 
 compiler.exe:
 	bison -d -v parser.y
