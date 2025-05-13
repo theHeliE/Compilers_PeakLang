@@ -31,6 +31,38 @@ int sym[26];
 SymbolTable *symbolTable = new SymbolTable();
 int isError = false;
 
+// Helper function to resolve an operand to an integer value
+// Returns a pair: {value, success_flag}
+std::pair<int, bool> resolve_operand_to_int(const Value& operand, SymbolTable* table) {
+    // Check if it's an identifier that needs lookup
+    // Condition: has a name AND type is not one of the directly usable literal types
+    if (operand.stringVal != nullptr && 
+        (operand.type != INT_TYPE && operand.type != FLOAT_TYPE && 
+         operand.type != BOOL_TYPE && operand.type != CHAR_TYPE /* Removed check for non-existent CONSTANT_TYPE */)) {
+        std::string varName(operand.stringVal);
+        SingleEntry* entry = table->get_SingleEntry(varName);
+        if (entry && entry->value && entry->type == INT_TYPE) {
+            // printf("Debug: Resolved identifier '%s' to %d\n", varName.c_str(), *(static_cast<int*>(entry->value)));
+            return {*(static_cast<int*>(entry->value)), true};
+        }
+        // yyerror(("Could not resolve identifier '" + varName + "' to INT or not found.").c_str());
+        return {0, false}; // Resolution failed or not an int
+    } else if (operand.type == INT_TYPE) {
+        // Direct integer literal or already resolved constant of int type
+        // printf("Debug: Operand is direct INT value %d\n", operand.intVal);
+        return {operand.intVal, true};
+    } else if (operand.type == UNKNOWN_TYPE && operand.intVal != 0 ) { // Fallback check for integer constants if lexer assigns UNKNOWN_TYPE but fills intVal
+        // This is a guess based on the presence of CONSTANT token; adjust if lexer behaves differently.
+         // Check if the value corresponds to the CONSTANT token itself, assuming lexer set intVal.
+         // A better approach is for the lexer to assign INT_TYPE to integer constants.
+         // printf("Debug: Operand is likely CONSTANT token (treated as INT) value %d\n", operand.intVal);
+        // return {operand.intVal, true}; // Temporarily disabling this fallback as it's uncertain
+         return {0, false}; 
+    }
+    // yyerror(("Operand type '" + enumToString(operand.type) + "' not resolvable to INT directly.").c_str());
+    return {0, false}; // Not an int or recognized identifier pattern
+}
+
 // Helper function to allocate memory for a Value's content
 void* allocateValueFromExpression(const Value& exprValue) {
     void* allocated_ptr = nullptr;
@@ -552,32 +584,60 @@ equality_expression
 relational_expression
     : shift_expression { $$ = $1; }
     | relational_expression L_OP shift_expression {
-        // Handle '<' operator
         $$ = Value();
         $$.type = BOOL_TYPE;
-        printf("Debug: Comparing %d (from $1) < %d (from $3)\n", $1.intVal, $3.intVal); // Correct debug print
-        $$.boolVal = $1.intVal < $3.intVal;
+        std::pair<int, bool> left = resolve_operand_to_int($1, symbolTable);
+        std::pair<int, bool> right = resolve_operand_to_int($3, symbolTable);
+
+        if (left.second && right.second) {
+            printf("Debug: Comparing %d < %d\n", left.first, right.first);
+            $$.boolVal = left.first < right.first;
+        } else {
+            yyerror("Type error or unresolved identifier in '<' comparison.");
+            $$.boolVal = false; // Default to false on error
+        }
     }
     | relational_expression G_OP shift_expression {
-        // Handle '>' operator
         $$ = Value();
         $$.type = BOOL_TYPE;
-        printf("Debug: Comparing %d (from $1) > %d (from $3)\n", $1.intVal, $3.intVal); // Correct debug print
-        $$.boolVal = $1.intVal > $3.intVal;
+        std::pair<int, bool> left = resolve_operand_to_int($1, symbolTable);
+        std::pair<int, bool> right = resolve_operand_to_int($3, symbolTable);
+
+        if (left.second && right.second) {
+            printf("Debug: Comparing %d > %d\n", left.first, right.first);
+            $$.boolVal = left.first > right.first;
+        } else {
+            yyerror("Type error or unresolved identifier in '>' comparison.");
+            $$.boolVal = false;
+        }
     }
     | relational_expression LE_OP shift_expression {
-        // Handle '<=' operator
         $$ = Value();
         $$.type = BOOL_TYPE;
-        printf("Debug: Comparing %d (from $1) <= %d (from $3)\n", $1.intVal, $3.intVal); // Correct debug print
-        $$.boolVal = $1.intVal <= $3.intVal;
+        std::pair<int, bool> left = resolve_operand_to_int($1, symbolTable);
+        std::pair<int, bool> right = resolve_operand_to_int($3, symbolTable);
+
+        if (left.second && right.second) {
+            printf("Debug: Comparing %d <= %d\n", left.first, right.first);
+            $$.boolVal = left.first <= right.first;
+        } else {
+            yyerror("Type error or unresolved identifier in '<=' comparison.");
+            $$.boolVal = false;
+        }
     }
     | relational_expression GE_OP shift_expression {
-        // Handle '>=' operator
         $$ = Value();
         $$.type = BOOL_TYPE;
-        printf("Debug: Comparing %d (from $1) >= %d (from $3)\n", $1.intVal, $3.intVal); // Correct debug print
-        $$.boolVal = $1.intVal >= $3.intVal;
+        std::pair<int, bool> left = resolve_operand_to_int($1, symbolTable);
+        std::pair<int, bool> right = resolve_operand_to_int($3, symbolTable);
+
+        if (left.second && right.second) {
+            printf("Debug: Comparing %d >= %d\n", left.first, right.first);
+            $$.boolVal = left.first >= right.first;
+        } else {
+            yyerror("Type error or unresolved identifier in '>=' comparison.");
+            $$.boolVal = false;
+        }
     }
     ;
 

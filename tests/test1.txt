@@ -1,5 +1,7 @@
-int x =5;
+int x =10;
 int y = 10;
-bool z = x <= y;
-z=x<y;
-x =3;
+bool z = x >= y;
+
+int t =69;
+int u = 6;
+bool v = t >= u;
