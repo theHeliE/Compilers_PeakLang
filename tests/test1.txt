@@ -1,6 +1,8 @@
 {
     float logic1 = 0.0;
     float logic2 = 0.0;
+    int or_expr1 = 1;
+    int or_expr2 = 0;
     int x = 5;
 
     if (logic1 != logic2){
@@ -8,4 +10,21 @@
     } else {
         x = 10;
     }
+
+    {
+        bool result = logic1 || logic2;
+    }
+
+    if (or_expr1 != or_expr2){
+        x = 2;
+        if(logic1 == logic2){
+            x = 3;
+        }
+        bool result = faks;
+    }
+
+    bool result = tmam;
+
+    x = 6;
+    bool answer = result;
 }
