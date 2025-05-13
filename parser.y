@@ -49,6 +49,9 @@ std::pair<int, bool> resolve_operand_to_int(const Value& operand, SymbolTable* t
             } else if (entry->type == CHAR_TYPE) {
                 return {(int)(*(static_cast<char*>(entry->value))), true}; // ASCII value
             }
+            else if (entry->type == BOOL_TYPE) {
+                return {*(static_cast<bool*>(entry->value)) ? 1 : 0, true}; // Convert bool to int
+            }
             return {0, false}; // Identifier found but not a convertible type
         }
         return {0, false}; // Resolution failed (not found or no value)
@@ -58,6 +61,8 @@ std::pair<int, bool> resolve_operand_to_int(const Value& operand, SymbolTable* t
         return {(int)operand.floatVal, true}; // Truncate float
     } else if (operand.type == CHAR_TYPE) {
         return {(int)operand.charVal, true}; // ASCII value
+    } else if (operand.type == BOOL_TYPE) {
+        return {operand.boolVal ? 1 : 0, true}; // Convert bool to int
     } else if (operand.type == UNKNOWN_TYPE && operand.intVal != 0 && operand.stringVal == nullptr) { 
         // This fallback is currently returning false as per existing code.
         // If enabled, it would treat UNKNOWN_TYPE with intVal as an int.
@@ -85,6 +90,9 @@ std::pair<float, bool> resolve_operand_to_float(const Value& operand, SymbolTabl
             } else if (entry->type == CHAR_TYPE) {
                 return {(float)(*(static_cast<char*>(entry->value))), true}; // Promote char (ASCII value to float)
             }
+            else if (entry->type == BOOL_TYPE) {
+                return {*(static_cast<bool*>(entry->value)) ? 1.0f : 0.0f, true}; // Convert bool to float
+            }
             return {0.0f, false}; // Identifier found but not a convertible type
         }
         return {0.0f, false}; // Resolution failed (not found or no value)
@@ -94,7 +102,11 @@ std::pair<float, bool> resolve_operand_to_float(const Value& operand, SymbolTabl
         return {(float)operand.intVal, true}; // Promote int
     } else if (operand.type == CHAR_TYPE) {
         return {(float)operand.charVal, true}; // Promote char (ASCII value to float)
-    } else if (operand.type == UNKNOWN_TYPE && operand.stringVal == nullptr) {
+    }
+    else if (operand.type == BOOL_TYPE) {
+        return {operand.boolVal ? 1.0f : 0.0f, true}; // Convert bool to float
+    }
+     else if (operand.type == UNKNOWN_TYPE && operand.stringVal == nullptr) {
         // Fallback for UNKNOWN_TYPE, attempting to use floatVal or intVal
         // This depends on how the lexer populates Value for unknown numeric constants
         if (operand.floatVal != 0.0f) { // Check floatVal first

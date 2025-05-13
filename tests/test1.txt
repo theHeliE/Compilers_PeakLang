@@ -9,6 +9,9 @@ int p = t;
 
 thabet int TOP_G = t;
 
-float m = 0.0;
-char g = '0';
-bool result = m > g;
+int logic1 = 0;
+int logic2 = 0;
+
+int or_expr1 = 0;
+int or_expr2 = 0;
+bool result = logic1 || logic2 || or_expr1;
