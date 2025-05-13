@@ -501,6 +501,7 @@ assignment_expression:
         void* allocated_val_ptr = allocateValueFromExpression($3);
         if (allocated_val_ptr != nullptr) {
             symbolTable->update_Value(getValueName($1), allocated_val_ptr , $3.type);
+
         // check if there is an error in the symbol table
         if (symbolTable->get_SingleEntry(getValueName($1))->isError) {
             yyerror("Matrakez ya 3aaam (pay attention noob)");
@@ -508,6 +509,7 @@ assignment_expression:
         } else {
             yyerror(("Failed to create value for assignment to variable " + getValueName($1)).c_str());
         }
+        quadruples->addQuadruple("ASSIGN", valueToString($3), "", getValueName($1));
     }
             
 
@@ -548,11 +550,35 @@ equality_expression
     ;
 
 relational_expression
-    : shift_expression
-    | relational_expression L_OP shift_expression
-    | relational_expression G_OP shift_expression
-    | relational_expression LE_OP shift_expression
-    | relational_expression GE_OP shift_expression
+    : shift_expression { $$ = $1; }
+    | relational_expression L_OP shift_expression {
+        // Handle '<' operator
+        $$ = Value();
+        $$.type = BOOL_TYPE;
+        printf("Debug: Comparing %d (from $1) < %d (from $3)\n", $1.intVal, $3.intVal); // Correct debug print
+        $$.boolVal = $1.intVal < $3.intVal;
+    }
+    | relational_expression G_OP shift_expression {
+        // Handle '>' operator
+        $$ = Value();
+        $$.type = BOOL_TYPE;
+        printf("Debug: Comparing %d (from $1) > %d (from $3)\n", $1.intVal, $3.intVal); // Correct debug print
+        $$.boolVal = $1.intVal > $3.intVal;
+    }
+    | relational_expression LE_OP shift_expression {
+        // Handle '<=' operator
+        $$ = Value();
+        $$.type = BOOL_TYPE;
+        printf("Debug: Comparing %d (from $1) <= %d (from $3)\n", $1.intVal, $3.intVal); // Correct debug print
+        $$.boolVal = $1.intVal <= $3.intVal;
+    }
+    | relational_expression GE_OP shift_expression {
+        // Handle '>=' operator
+        $$ = Value();
+        $$.type = BOOL_TYPE;
+        printf("Debug: Comparing %d (from $1) >= %d (from $3)\n", $1.intVal, $3.intVal); // Correct debug print
+        $$.boolVal = $1.intVal >= $3.intVal;
+    }
     ;
 
 shift_expression
@@ -572,7 +598,7 @@ multiplicative_expression
     | multiplicative_expression '*' unary_expression
     | multiplicative_expression '/' unary_expression
     | multiplicative_expression '%' unary_expression
-    ;
+ ;
 
 /* unary_expression
     : primary_expression
