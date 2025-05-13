@@ -1,8 +1,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////
 Name                Type           isConst   isUsed              Value     
 ----------------------------------------------------------------------------------------
-result              BOOL           false     false               false
-or_expr1            INT            false     false               0
+result              BOOL           false     false               true
+or_expr1            INT            false     false               1
 p                   INT            false     false               69
 v                   BOOL           false     false               true
 t                   INT            false     false               69

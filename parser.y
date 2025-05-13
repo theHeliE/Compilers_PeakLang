@@ -668,7 +668,27 @@ logical_or_expression
 
 logical_and_expression
     : inclusive_or_expression
-    | logical_and_expression AND_OP inclusive_or_expression
+    | logical_and_expression AND_OP inclusive_or_expression {
+        $$ = Value();
+        $$.type = BOOL_TYPE;
+        std::pair<float, bool> left_f = resolve_operand_to_float($1, symbolTable);
+        std::pair<float, bool> right_f = resolve_operand_to_float($3, symbolTable);
+
+        if (left_f.second && right_f.second) {
+            // printf("Debug: Comparing (float) %f < %f\n", left_f.first, right_f.first);
+            $$.boolVal = left_f.first && right_f.first;
+        } else {
+            std::pair<int, bool> left_i = resolve_operand_to_int($1, symbolTable);
+            std::pair<int, bool> right_i = resolve_operand_to_int($3, symbolTable);
+            if (left_i.second && right_i.second) {
+                // printf("Debug: Comparing (int) %d < %d\n", left_i.first, right_i.first);
+                $$.boolVal = left_i.first && right_i.first;
+            } else {
+                yyerror("Type error or unresolved identifier in '&&' comparison. Operands not comparable as float or int.");
+                $$.boolVal = false; 
+            }
+        }
+    }
     ;
 
 inclusive_or_expression

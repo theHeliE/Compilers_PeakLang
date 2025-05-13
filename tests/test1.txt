@@ -12,6 +12,6 @@ thabet int TOP_G = t;
 int logic1 = 0;
 int logic2 = 0;
 
-int or_expr1 = 0;
+int or_expr1 = 1;
 int or_expr2 = 0;
-bool result = logic1 || logic2 || or_expr1;
+bool result = logic1 == logic2 && or_expr1;

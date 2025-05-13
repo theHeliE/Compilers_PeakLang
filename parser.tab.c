@@ -718,11 +718,11 @@ static const yytype_uint16 yyrline[] =
      454,   464,   473,   474,   481,   485,   486,   490,   491,   495,
      496,   502,   503,   511,   512,   513,   514,   515,   524,   532,
      539,   543,   544,   548,   549,   558,   563,   569,   576,   577,
-     578,   582,   601,   620,   621,   645,   646,   670,   671,   675,
-     676,   680,   681,   685,   686,   690,   691,   713,   738,   739,
-     760,   781,   802,   826,   827,   828,   832,   833,   834,   838,
-     839,   840,   841,   853,   854,   859,   862,   866,   874,   915,
-     916,   917,   918
+     578,   582,   601,   620,   621,   645,   646,   670,   671,   695,
+     696,   700,   701,   705,   706,   710,   711,   733,   758,   759,
+     780,   801,   822,   846,   847,   848,   852,   853,   854,   858,
+     859,   860,   861,   873,   874,   879,   882,   886,   894,   935,
+     936,   937,   938
 };
 #endif
 
@@ -2100,10 +2100,37 @@ yyreduce:
     ;}
     break;
 
+  case 58:
+
+/* Line 1455 of yacc.c  */
+#line 671 "parser.y"
+    {
+        (yyval.val) = Value();
+        (yyval.val).type = BOOL_TYPE;
+        std::pair<float, bool> left_f = resolve_operand_to_float((yyvsp[(1) - (3)].val), symbolTable);
+        std::pair<float, bool> right_f = resolve_operand_to_float((yyvsp[(3) - (3)].val), symbolTable);
+
+        if (left_f.second && right_f.second) {
+            // printf("Debug: Comparing (float) %f < %f\n", left_f.first, right_f.first);
+            (yyval.val).boolVal = left_f.first && right_f.first;
+        } else {
+            std::pair<int, bool> left_i = resolve_operand_to_int((yyvsp[(1) - (3)].val), symbolTable);
+            std::pair<int, bool> right_i = resolve_operand_to_int((yyvsp[(3) - (3)].val), symbolTable);
+            if (left_i.second && right_i.second) {
+                // printf("Debug: Comparing (int) %d < %d\n", left_i.first, right_i.first);
+                (yyval.val).boolVal = left_i.first && right_i.first;
+            } else {
+                yyerror("Type error or unresolved identifier in '&&' comparison. Operands not comparable as float or int.");
+                (yyval.val).boolVal = false; 
+            }
+        }
+    ;}
+    break;
+
   case 66:
 
 /* Line 1455 of yacc.c  */
-#line 691 "parser.y"
+#line 711 "parser.y"
     {
 
         (yyval.val) = Value();
@@ -2131,7 +2158,7 @@ yyreduce:
   case 67:
 
 /* Line 1455 of yacc.c  */
-#line 714 "parser.y"
+#line 734 "parser.y"
     {
         (yyval.val) = Value();
         (yyval.val).type = BOOL_TYPE;
@@ -2158,14 +2185,14 @@ yyreduce:
   case 68:
 
 /* Line 1455 of yacc.c  */
-#line 738 "parser.y"
+#line 758 "parser.y"
     { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
     break;
 
   case 69:
 
 /* Line 1455 of yacc.c  */
-#line 739 "parser.y"
+#line 759 "parser.y"
     {
         (yyval.val) = Value();
         (yyval.val).type = BOOL_TYPE;
@@ -2192,7 +2219,7 @@ yyreduce:
   case 70:
 
 /* Line 1455 of yacc.c  */
-#line 760 "parser.y"
+#line 780 "parser.y"
     {
         (yyval.val) = Value();
         (yyval.val).type = BOOL_TYPE;
@@ -2219,7 +2246,7 @@ yyreduce:
   case 71:
 
 /* Line 1455 of yacc.c  */
-#line 781 "parser.y"
+#line 801 "parser.y"
     {
         (yyval.val) = Value();
         (yyval.val).type = BOOL_TYPE;
@@ -2246,7 +2273,7 @@ yyreduce:
   case 72:
 
 /* Line 1455 of yacc.c  */
-#line 802 "parser.y"
+#line 822 "parser.y"
     {
         (yyval.val) = Value();
         (yyval.val).type = BOOL_TYPE;
@@ -2273,14 +2300,14 @@ yyreduce:
   case 83:
 
 /* Line 1455 of yacc.c  */
-#line 853 "parser.y"
+#line 873 "parser.y"
     { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
     break;
 
   case 84:
 
 /* Line 1455 of yacc.c  */
-#line 854 "parser.y"
+#line 874 "parser.y"
     {
           // Create a new Value and apply negation
           (yyval.val) = (yyvsp[(2) - (2)].val);
@@ -2291,7 +2318,7 @@ yyreduce:
   case 85:
 
 /* Line 1455 of yacc.c  */
-#line 859 "parser.y"
+#line 879 "parser.y"
     {
           (yyval.val) = (yyvsp[(2) - (2)].val);
       ;}
@@ -2300,7 +2327,7 @@ yyreduce:
   case 86:
 
 /* Line 1455 of yacc.c  */
-#line 862 "parser.y"
+#line 882 "parser.y"
     {
           (yyval.val) = (yyvsp[(2) - (2)].val);
           (yyval.val).boolVal = !(yyval.val).boolVal;
@@ -2310,7 +2337,7 @@ yyreduce:
   case 87:
 
 /* Line 1455 of yacc.c  */
-#line 866 "parser.y"
+#line 886 "parser.y"
     {
           (yyval.val) = (yyvsp[(2) - (2)].val);
           (yyval.val).intVal = ~(yyval.val).intVal;
@@ -2320,7 +2347,7 @@ yyreduce:
   case 88:
 
 /* Line 1455 of yacc.c  */
-#line 874 "parser.y"
+#line 894 "parser.y"
     { 
          (yyval.val) = Value();
         SingleEntry* entry = symbolTable->get_SingleEntry(getValueName((yyvsp[(1) - (1)].val)));
@@ -2367,35 +2394,35 @@ yyreduce:
   case 89:
 
 /* Line 1455 of yacc.c  */
-#line 915 "parser.y"
+#line 935 "parser.y"
     { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
     break;
 
   case 90:
 
 /* Line 1455 of yacc.c  */
-#line 916 "parser.y"
+#line 936 "parser.y"
     { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
     break;
 
   case 91:
 
 /* Line 1455 of yacc.c  */
-#line 917 "parser.y"
+#line 937 "parser.y"
     { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
     break;
 
   case 92:
 
 /* Line 1455 of yacc.c  */
-#line 918 "parser.y"
+#line 938 "parser.y"
     { (yyval.val) = (yyvsp[(2) - (3)].val); ;}
     break;
 
 
 
 /* Line 1455 of yacc.c  */
-#line 2399 "parser.tab.c"
+#line 2426 "parser.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2607,7 +2634,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 921 "parser.y"
+#line 941 "parser.y"
 
 
 void yyerror(const char *s) {
