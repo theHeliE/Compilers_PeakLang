@@ -210,6 +210,23 @@ string valueToString(const Value& val) {
 
 Quadruples * quadruples = new Quadruples();
 
+Value* getLabel(){
+    printf("New Label\n");
+
+    char temp[20];
+    sprintf(temp, "L%d", quadruples->labelCounter++);
+
+    Value * result = (Value*)malloc(sizeof(Value));
+    result->type = STRING_TYPE;
+
+    char* tempStr = strdup(temp);
+    result->stringVal = tempStr;
+     
+     printf("Label: created");
+
+    return result;
+}
+
 // Notmally the "Main" quadruple is the current quadruple, when we enter a new scope, this temporarily changes.
 // Quadruples * currentQuadruple = quadruples;
 // vector<Quadruples*> quadrupleStack;
@@ -521,15 +538,44 @@ statement
 selection_statement:
     
     // eg. if (x == 5) printf("x is 5");
-    IF '(' expression ')' statement %prec LOWER_THAN_ELSE
+ IF '(' expression ')' statement %prec LOWER_THAN_ELSE
     {
-        printf("Selection statement\n");
+        // $3 is the expression (condition)
+        // $5 is the statement to execute if the condition is true
+
+        Value* end_if_label = getLabel(); // Label to jump to if condition is false (i.e., after the statement)
+
+        // Quadruple: If condition ($3) is false, jump to end_if_label
+        quadruples->addQuadruple("JF", valueToString($3), valueToString(*end_if_label), "");
+        printf("Debug: Adding JF Quadruple for IF statement. Condition: %s, Target Label: %s\n", valueToString($3).c_str(), valueToString(*end_if_label).c_str());
+
+        // The quadruples for the 'statement' ($5) are generated when $5 is reduced.
+
+        // Quadruple: Define the label that marks the end of the IF block
+        quadruples->addQuadruple("LABEL", valueToString(*end_if_label), "", "");
+        printf("Debug: Adding LABEL Quadruple: %s\n", valueToString(*end_if_label).c_str());
+
+        // The IF statement itself doesn't produce a value in this context,
+        // but you might need to assign to $$ if selection_statement is expected to have one.
+        // $$ = Value(); // Default value, or specific if needed.
+        printf("Selection statement (IF) processed\n");
+        free(end_if_label->stringVal); // Assuming getLabel strdup'd and valueToString doesn't take ownership
+        free(end_if_label);
     }
 
     // #####################################
 
     // eg. if (x == 5) printf("x is 5"); else printf("x is not 5");
-    | IF '(' expression ')' statement ELSE statement
+    | IF '(' expression ')' statement ELSE statement{
+        Value * else_label = getLabel();
+
+        // quadruples->addQuadruple("JF", valueToString($3), valueToString(else_label),"");
+        // printf("Debug: Adding JF Quadruple for IF statement\n");
+
+        
+
+        printf("Selection statement\n");
+    }
 
     // #####################################
 
