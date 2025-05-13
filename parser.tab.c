@@ -302,11 +302,31 @@ Value* getLabel(){
     return result;
 }
 
+Value* handleExpression(const char* op, string op1, string op2) {
+        printf("Expression with %s operator\n", op);
+
+        // Generate result in a temporary variable
+        char temp[20];
+        snprintf(temp, sizeof(temp), "t%d", quadruples->resultCounter++);
+
+        // Add quadruple with the temporary variable as result
+        currentQuadruple->addQuadruple(op, op1, op2, temp);
+
+        // Create new TypeAndValue for the temporary result
+        Value* result = (Value*)malloc(sizeof(Value));
+        result->type = STRING_TYPE;
+        char* tempStr = strdup(temp);
+        result->stringVal = tempStr;
+
+        return result;
+
+}
+
 
 
 
 /* Line 189 of yacc.c  */
-#line 310 "parser.tab.c"
+#line 330 "parser.tab.c"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -336,7 +356,7 @@ Value* getLabel(){
 
 
 /* Line 209 of yacc.c  */
-#line 340 "parser.tab.c"
+#line 360 "parser.tab.c"
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -390,7 +410,7 @@ typedef union YYSTYPE
 {
 
 /* Line 214 of yacc.c  */
-#line 246 "parser.y"
+#line 266 "parser.y"
 
     int intVal;
     float floatVal;
@@ -405,7 +425,7 @@ typedef union YYSTYPE
 
 
 /* Line 214 of yacc.c  */
-#line 409 "parser.tab.c"
+#line 429 "parser.tab.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -417,7 +437,7 @@ typedef union YYSTYPE
 
 
 /* Line 264 of yacc.c  */
-#line 421 "parser.tab.c"
+#line 441 "parser.tab.c"
 
 #ifdef short
 # undef short
@@ -741,16 +761,16 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   333,   333,   337,   344,   348,   360,   364,   368,   381,
-     396,   422,   456,   464,   475,   476,   477,   478,   479,   483,
-     486,   496,   505,   506,   513,   517,   525,   526,   530,   531,
-     537,   538,   546,   547,   552,   553,   554,   563,   594,   639,
-     643,   644,   648,   649,   658,   663,   669,   725,   726,   727,
-     731,   750,   769,   770,   795,   796,   820,   821,   845,   846,
-     850,   851,   855,   856,   860,   861,   883,   908,   909,   930,
-     951,   972,   996,   997,   998,  1002,  1003,  1041,  1081,  1082,
-    1119,  1156,  1196,  1197,  1202,  1205,  1209,  1217,  1258,  1259,
-    1260,  1261,  1266,  1295
+       0,   353,   353,   357,   364,   368,   380,   384,   388,   401,
+     416,   442,   476,   484,   495,   496,   497,   498,   499,   503,
+     506,   516,   525,   526,   533,   537,   545,   546,   550,   551,
+     557,   558,   566,   567,   572,   573,   574,   583,   614,   659,
+     663,   664,   668,   669,   678,   683,   689,   745,   746,   747,
+     751,   770,   789,   790,   815,   816,   842,   843,   869,   870,
+     874,   875,   879,   880,   884,   885,   909,   936,   937,   960,
+     983,  1006,  1032,  1033,  1034,  1038,  1039,  1079,  1121,  1122,
+    1161,  1200,  1241,  1242,  1247,  1250,  1254,  1262,  1303,  1304,
+    1305,  1306,  1311,  1340
 };
 #endif
 
@@ -1795,7 +1815,7 @@ yyreduce:
         case 2:
 
 /* Line 1455 of yacc.c  */
-#line 334 "parser.y"
+#line 354 "parser.y"
     { 
         printf("Main program\n"); 
     ;}
@@ -1804,7 +1824,7 @@ yyreduce:
   case 3:
 
 /* Line 1455 of yacc.c  */
-#line 338 "parser.y"
+#line 358 "parser.y"
     { 
         // ErrorToFile("Syntax Error"); YYABORT; 
         printf("Feh errors ya man\n");  YYABORT; 
@@ -1814,7 +1834,7 @@ yyreduce:
   case 4:
 
 /* Line 1455 of yacc.c  */
-#line 345 "parser.y"
+#line 365 "parser.y"
     {
         printf("Program\n");
     ;}
@@ -1823,7 +1843,7 @@ yyreduce:
   case 5:
 
 /* Line 1455 of yacc.c  */
-#line 349 "parser.y"
+#line 369 "parser.y"
     {
         printf("Program with external declarations\n");
     ;}
@@ -1832,7 +1852,7 @@ yyreduce:
   case 6:
 
 /* Line 1455 of yacc.c  */
-#line 361 "parser.y"
+#line 381 "parser.y"
     {
         printf("Function definition\n");
     ;}
@@ -1841,7 +1861,7 @@ yyreduce:
   case 7:
 
 /* Line 1455 of yacc.c  */
-#line 365 "parser.y"
+#line 385 "parser.y"
     {
         printf("Variable definition\n");
     ;}
@@ -1850,7 +1870,7 @@ yyreduce:
   case 8:
 
 /* Line 1455 of yacc.c  */
-#line 369 "parser.y"
+#line 389 "parser.y"
     {
         printf("Expression statement\n");
         Quadruples * ScopeQuadruples = (Quadruples*)(yyvsp[(1) - (1)].ptr);
@@ -1861,7 +1881,7 @@ yyreduce:
   case 9:
 
 /* Line 1455 of yacc.c  */
-#line 382 "parser.y"
+#line 402 "parser.y"
     {
         printf("variable_declaration\n");
         symbolTable->insert((yyvsp[(2) - (3)].val), (yyvsp[(1) - (3)].val), NULL);
@@ -1876,7 +1896,7 @@ yyreduce:
   case 10:
 
 /* Line 1455 of yacc.c  */
-#line 397 "parser.y"
+#line 417 "parser.y"
     {
            if (getValueName((yyvsp[(1) - (5)].val))!=enumToString((yyvsp[(4) - (5)].val).type)) {
             yyerror("Elet adab walahy :/, Type mismatch in variable declaration");
@@ -1903,7 +1923,7 @@ yyreduce:
   case 11:
 
 /* Line 1455 of yacc.c  */
-#line 423 "parser.y"
+#line 443 "parser.y"
     {
         printf("variable_declaration Rule 3\n");
             if (getValueName((yyvsp[(2) - (6)].val))!=enumToString((yyvsp[(5) - (6)].val).type)) {
@@ -1935,7 +1955,7 @@ yyreduce:
   case 12:
 
 /* Line 1455 of yacc.c  */
-#line 457 "parser.y"
+#line 477 "parser.y"
     {
         (yyval.val) = (yyvsp[(1) - (1)].val);
     ;}
@@ -1944,7 +1964,7 @@ yyreduce:
   case 13:
 
 /* Line 1455 of yacc.c  */
-#line 465 "parser.y"
+#line 485 "parser.y"
     {
         // $$ = (char*)malloc(strlen($1) + strlen($3) + 2);
         // sprintf($$, "%s,%s", $1, $3);
@@ -1954,42 +1974,42 @@ yyreduce:
   case 14:
 
 /* Line 1455 of yacc.c  */
-#line 475 "parser.y"
+#line 495 "parser.y"
     { (yyval.val).stringVal = "INT"; ;}
     break;
 
   case 15:
 
 /* Line 1455 of yacc.c  */
-#line 476 "parser.y"
+#line 496 "parser.y"
     { (yyval.val).stringVal = "FLOAT"; ;}
     break;
 
   case 16:
 
 /* Line 1455 of yacc.c  */
-#line 477 "parser.y"
+#line 497 "parser.y"
     { (yyval.val).stringVal = "CHAR"; ;}
     break;
 
   case 17:
 
 /* Line 1455 of yacc.c  */
-#line 478 "parser.y"
+#line 498 "parser.y"
     { (yyval.val).stringVal = "VOID";;}
     break;
 
   case 18:
 
 /* Line 1455 of yacc.c  */
-#line 479 "parser.y"
+#line 499 "parser.y"
     { (yyval.val).stringVal = "BOOL"; ;}
     break;
 
   case 19:
 
 /* Line 1455 of yacc.c  */
-#line 483 "parser.y"
+#line 503 "parser.y"
     {
         printf("Assignment Expression\n");
     ;}
@@ -1998,21 +2018,21 @@ yyreduce:
   case 22:
 
 /* Line 1455 of yacc.c  */
-#line 505 "parser.y"
+#line 525 "parser.y"
     { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
     break;
 
   case 23:
 
 /* Line 1455 of yacc.c  */
-#line 506 "parser.y"
+#line 526 "parser.y"
     { (yyval.val) = (yyvsp[(1) - (3)].val); ;}
     break;
 
   case 25:
 
 /* Line 1455 of yacc.c  */
-#line 517 "parser.y"
+#line 537 "parser.y"
     {
         printf("Compound statement\n");
 
@@ -2023,7 +2043,7 @@ yyreduce:
   case 33:
 
 /* Line 1455 of yacc.c  */
-#line 547 "parser.y"
+#line 567 "parser.y"
     { 
         printf("Compound statement\n");
         Quadruples * ScopeQuadruples = (Quadruples*)(yyvsp[(1) - (1)].ptr);
@@ -2034,7 +2054,7 @@ yyreduce:
   case 37:
 
 /* Line 1455 of yacc.c  */
-#line 564 "parser.y"
+#line 584 "parser.y"
     {
         // $3 is the expression (condition)
         // $5 is the statement to execute if the condition is true
@@ -2066,7 +2086,7 @@ yyreduce:
   case 38:
 
 /* Line 1455 of yacc.c  */
-#line 594 "parser.y"
+#line 614 "parser.y"
     {
         printf("Selection statement with ELSE\n");
 
@@ -2111,7 +2131,7 @@ yyreduce:
   case 46:
 
 /* Line 1455 of yacc.c  */
-#line 670 "parser.y"
+#line 690 "parser.y"
     {
         // LABEL
         // JF
@@ -2166,7 +2186,7 @@ yyreduce:
   case 50:
 
 /* Line 1455 of yacc.c  */
-#line 732 "parser.y"
+#line 752 "parser.y"
     {
        // check if the function is returning a value with same type
         // TODO: string functionName = (active functions) I would like to get the function name from the symbol table
@@ -2187,7 +2207,7 @@ yyreduce:
   case 51:
 
 /* Line 1455 of yacc.c  */
-#line 751 "parser.y"
+#line 771 "parser.y"
     {
         // check if the function is returning a value with same type
         // TODO: string functionName = (active functions) I would like to get the function name from the symbol table
@@ -2206,7 +2226,7 @@ yyreduce:
   case 53:
 
 /* Line 1455 of yacc.c  */
-#line 770 "parser.y"
+#line 790 "parser.y"
     {
         printf("Assignment expression\n");
         // $1 is IDENTIFIER, $3 is assignment_expression (Value)
@@ -2231,7 +2251,7 @@ yyreduce:
   case 55:
 
 /* Line 1455 of yacc.c  */
-#line 796 "parser.y"
+#line 816 "parser.y"
     {
          (yyval.val) = Value();
         (yyval.val).type = BOOL_TYPE;
@@ -2241,12 +2261,14 @@ yyreduce:
         if (left_f.second && right_f.second) {
             // printf("Debug: Comparing (float) %f < %f\n", left_f.first, right_f.first);
             (yyval.val).boolVal = left_f.first || right_f.first;
+            handleExpression("OR", valueToString((yyvsp[(1) - (3)].val)), valueToString((yyvsp[(3) - (3)].val)));
         } else {
             std::pair<int, bool> left_i = resolve_operand_to_int((yyvsp[(1) - (3)].val), symbolTable);
             std::pair<int, bool> right_i = resolve_operand_to_int((yyvsp[(3) - (3)].val), symbolTable);
             if (left_i.second && right_i.second) {
                 // printf("Debug: Comparing (int) %d < %d\n", left_i.first, right_i.first);
                 (yyval.val).boolVal = left_i.first || right_i.first;
+                handleExpression("OR", valueToString((yyvsp[(1) - (3)].val)), valueToString((yyvsp[(3) - (3)].val)));
             } else {
                 yyerror("Type error or unresolved identifier in '||' comparison. Operands not comparable as float or int.");
                 (yyval.val).boolVal = false; 
@@ -2258,7 +2280,7 @@ yyreduce:
   case 57:
 
 /* Line 1455 of yacc.c  */
-#line 821 "parser.y"
+#line 843 "parser.y"
     {
         (yyval.val) = Value();
         (yyval.val).type = BOOL_TYPE;
@@ -2268,12 +2290,14 @@ yyreduce:
         if (left_f.second && right_f.second) {
             // printf("Debug: Comparing (float) %f < %f\n", left_f.first, right_f.first);
             (yyval.val).boolVal = left_f.first && right_f.first;
+            handleExpression("AND", valueToString((yyvsp[(1) - (3)].val)), valueToString((yyvsp[(3) - (3)].val)));
         } else {
             std::pair<int, bool> left_i = resolve_operand_to_int((yyvsp[(1) - (3)].val), symbolTable);
             std::pair<int, bool> right_i = resolve_operand_to_int((yyvsp[(3) - (3)].val), symbolTable);
             if (left_i.second && right_i.second) {
                 // printf("Debug: Comparing (int) %d < %d\n", left_i.first, right_i.first);
                 (yyval.val).boolVal = left_i.first && right_i.first;
+                handleExpression("AND", valueToString((yyvsp[(1) - (3)].val)), valueToString((yyvsp[(3) - (3)].val)));
             } else {
                 yyerror("Type error or unresolved identifier in '&&' comparison. Operands not comparable as float or int.");
                 (yyval.val).boolVal = false; 
@@ -2285,7 +2309,7 @@ yyreduce:
   case 65:
 
 /* Line 1455 of yacc.c  */
-#line 861 "parser.y"
+#line 885 "parser.y"
     {
 
         (yyval.val) = Value();
@@ -2296,12 +2320,14 @@ yyreduce:
         if (left_f.second && right_f.second) {
             // printf("Debug: Comparing (float) %f < %f\n", left_f.first, right_f.first);
             (yyval.val).boolVal = left_f.first == right_f.first;
+            handleExpression("EQ", valueToString((yyvsp[(1) - (3)].val)), valueToString((yyvsp[(3) - (3)].val)));
         } else {
             std::pair<int, bool> left_i = resolve_operand_to_int((yyvsp[(1) - (3)].val), symbolTable);
             std::pair<int, bool> right_i = resolve_operand_to_int((yyvsp[(3) - (3)].val), symbolTable);
             if (left_i.second && right_i.second) {
                 // printf("Debug: Comparing (int) %d < %d\n", left_i.first, right_i.first);
                 (yyval.val).boolVal = left_i.first == right_i.first;
+                handleExpression("EQ", valueToString((yyvsp[(1) - (3)].val)), valueToString((yyvsp[(3) - (3)].val)));
             } else {
                 yyerror("Type error or unresolved identifier in '==' comparison. Operands not comparable as float or int.");
                 (yyval.val).boolVal = false; 
@@ -2313,7 +2339,7 @@ yyreduce:
   case 66:
 
 /* Line 1455 of yacc.c  */
-#line 884 "parser.y"
+#line 910 "parser.y"
     {
         (yyval.val) = Value();
         (yyval.val).type = BOOL_TYPE;
@@ -2323,12 +2349,14 @@ yyreduce:
         if (left_f.second && right_f.second) {
             // printf("Debug: Comparing (float) %f < %f\n", left_f.first, right_f.first);
             (yyval.val).boolVal = left_f.first != right_f.first;
+            handleExpression("NE", valueToString((yyvsp[(1) - (3)].val)), valueToString((yyvsp[(3) - (3)].val)));
         } else {
             std::pair<int, bool> left_i = resolve_operand_to_int((yyvsp[(1) - (3)].val), symbolTable);
             std::pair<int, bool> right_i = resolve_operand_to_int((yyvsp[(3) - (3)].val), symbolTable);
             if (left_i.second && right_i.second) {
                 // printf("Debug: Comparing (int) %d < %d\n", left_i.first, right_i.first);
                 (yyval.val).boolVal = left_i.first != right_i.first;
+                handleExpression("NE", valueToString((yyvsp[(1) - (3)].val)), valueToString((yyvsp[(3) - (3)].val)));
             } else {
                 yyerror("Type error or unresolved identifier in '!=' comparison. Operands not comparable as float or int.");
                 (yyval.val).boolVal = false; 
@@ -2340,14 +2368,14 @@ yyreduce:
   case 67:
 
 /* Line 1455 of yacc.c  */
-#line 908 "parser.y"
+#line 936 "parser.y"
     { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
     break;
 
   case 68:
 
 /* Line 1455 of yacc.c  */
-#line 909 "parser.y"
+#line 937 "parser.y"
     {
         (yyval.val) = Value();
         (yyval.val).type = BOOL_TYPE;
@@ -2357,12 +2385,14 @@ yyreduce:
         if (left_f.second && right_f.second) {
             // printf("Debug: Comparing (float) %f < %f\n", left_f.first, right_f.first);
             (yyval.val).boolVal = left_f.first < right_f.first;
+            handleExpression("LT", valueToString((yyvsp[(1) - (3)].val)), valueToString((yyvsp[(3) - (3)].val)));
         } else {
             std::pair<int, bool> left_i = resolve_operand_to_int((yyvsp[(1) - (3)].val), symbolTable);
             std::pair<int, bool> right_i = resolve_operand_to_int((yyvsp[(3) - (3)].val), symbolTable);
             if (left_i.second && right_i.second) {
                 // printf("Debug: Comparing (int) %d < %d\n", left_i.first, right_i.first);
                 (yyval.val).boolVal = left_i.first < right_i.first;
+                handleExpression("LT", valueToString((yyvsp[(1) - (3)].val)), valueToString((yyvsp[(3) - (3)].val)));
             } else {
                 yyerror("Type error or unresolved identifier in '<' comparison. Operands not comparable as float or int.");
                 (yyval.val).boolVal = false; 
@@ -2374,7 +2404,7 @@ yyreduce:
   case 69:
 
 /* Line 1455 of yacc.c  */
-#line 930 "parser.y"
+#line 960 "parser.y"
     {
         (yyval.val) = Value();
         (yyval.val).type = BOOL_TYPE;
@@ -2384,12 +2414,14 @@ yyreduce:
         if (left_f.second && right_f.second) {
             // printf("Debug: Comparing (float) %f > %f\n", left_f.first, right_f.first);
             (yyval.val).boolVal = left_f.first > right_f.first;
+            handleExpression("GT", valueToString((yyvsp[(1) - (3)].val)), valueToString((yyvsp[(3) - (3)].val)));
         } else {
             std::pair<int, bool> left_i = resolve_operand_to_int((yyvsp[(1) - (3)].val), symbolTable);
             std::pair<int, bool> right_i = resolve_operand_to_int((yyvsp[(3) - (3)].val), symbolTable);
             if (left_i.second && right_i.second) {
                 // printf("Debug: Comparing (int) %d > %d\n", left_i.first, right_i.first);
                 (yyval.val).boolVal = left_i.first > right_i.first;
+                handleExpression("GT", valueToString((yyvsp[(1) - (3)].val)), valueToString((yyvsp[(3) - (3)].val)));
             } else {
                 yyerror("Type error or unresolved identifier in '>' comparison. Operands not comparable as float or int.");
                 (yyval.val).boolVal = false;
@@ -2401,7 +2433,7 @@ yyreduce:
   case 70:
 
 /* Line 1455 of yacc.c  */
-#line 951 "parser.y"
+#line 983 "parser.y"
     {
         (yyval.val) = Value();
         (yyval.val).type = BOOL_TYPE;
@@ -2411,12 +2443,14 @@ yyreduce:
         if (left_f.second && right_f.second) {
             // printf("Debug: Comparing (float) %f <= %f\n", left_f.first, right_f.first);
             (yyval.val).boolVal = left_f.first <= right_f.first;
+            handleExpression("LE", valueToString((yyvsp[(1) - (3)].val)), valueToString((yyvsp[(3) - (3)].val)));
         } else {
             std::pair<int, bool> left_i = resolve_operand_to_int((yyvsp[(1) - (3)].val), symbolTable);
             std::pair<int, bool> right_i = resolve_operand_to_int((yyvsp[(3) - (3)].val), symbolTable);
             if (left_i.second && right_i.second) {
                 // printf("Debug: Comparing (int) %d <= %d\n", left_i.first, right_i.first);
                 (yyval.val).boolVal = left_i.first <= right_i.first;
+                handleExpression("LE", valueToString((yyvsp[(1) - (3)].val)), valueToString((yyvsp[(3) - (3)].val)));
             } else {
                 yyerror("Type error or unresolved identifier in '<=' comparison. Operands not comparable as float or int.");
                 (yyval.val).boolVal = false;
@@ -2428,7 +2462,7 @@ yyreduce:
   case 71:
 
 /* Line 1455 of yacc.c  */
-#line 972 "parser.y"
+#line 1006 "parser.y"
     {
         (yyval.val) = Value();
         (yyval.val).type = BOOL_TYPE;
@@ -2438,12 +2472,14 @@ yyreduce:
         if (left_f.second && right_f.second) {
             // printf("Debug: Comparing (float) %f >= %f\n", left_f.first, right_f.first);
             (yyval.val).boolVal = left_f.first >= right_f.first;
+            handleExpression("GE", valueToString((yyvsp[(1) - (3)].val)), valueToString((yyvsp[(3) - (3)].val)));
         } else {
             std::pair<int, bool> left_i = resolve_operand_to_int((yyvsp[(1) - (3)].val), symbolTable);
             std::pair<int, bool> right_i = resolve_operand_to_int((yyvsp[(3) - (3)].val), symbolTable);
             if (left_i.second && right_i.second) {
                 // printf("Debug: Comparing (int) %d >= %d\n", left_i.first, right_i.first);
                 (yyval.val).boolVal = left_i.first >= right_i.first;
+                handleExpression("GE", valueToString((yyvsp[(1) - (3)].val)), valueToString((yyvsp[(3) - (3)].val)));
             } else {
                 yyerror("Type error or unresolved identifier in '>=' comparison. Operands not comparable as float or int.");
                 (yyval.val).boolVal = false;
@@ -2455,7 +2491,7 @@ yyreduce:
   case 76:
 
 /* Line 1455 of yacc.c  */
-#line 1004 "parser.y"
+#line 1040 "parser.y"
     {
        (yyval.val) = Value();
         
@@ -2470,6 +2506,7 @@ yyreduce:
                 // printf("Debug: Comparing (int) %d >= %d\n", left_i.first, right_i.first);
                 (yyval.val).intVal = left_i.first + right_i.first;
                 (yyval.val).type = INT_TYPE;
+                handleExpression("ADD", valueToString((yyvsp[(1) - (3)].val)), valueToString((yyvsp[(3) - (3)].val)));
                 printf("Debug: Adding (int) %d + %d\n", left_i.first, right_i.first);
                 printf("Debug: Result (int) %d\n", (yyval.val).intVal);
             } else {
@@ -2487,6 +2524,7 @@ yyreduce:
 
             (yyval.val).floatVal = left_f.first + right_f.first;
             (yyval.val).type = FLOAT_TYPE;
+            handleExpression("ADD", valueToString((yyvsp[(1) - (3)].val)), valueToString((yyvsp[(3) - (3)].val)));
             printf("Debug: Adding (float) %f + %f\n", left_f.first, right_f.first);
             printf("Debug: Result (float) %f\n", (yyval.val).floatVal);
 
@@ -2498,7 +2536,7 @@ yyreduce:
   case 77:
 
 /* Line 1455 of yacc.c  */
-#line 1042 "parser.y"
+#line 1080 "parser.y"
     {
         (yyval.val) = Value();
         
@@ -2513,6 +2551,7 @@ yyreduce:
                 // printf("Debug: Comparing (int) %d >= %d\n", left_i.first, right_i.first);
                 (yyval.val).intVal = left_i.first - right_i.first;
                 (yyval.val).type = INT_TYPE;
+                handleExpression("SUB", valueToString((yyvsp[(1) - (3)].val)), valueToString((yyvsp[(3) - (3)].val)));
                 printf("Debug: Adding (int) %d - %d\n", left_i.first, right_i.first);
                 printf("Debug: Result (int) %d\n", (yyval.val).intVal);
             } else {
@@ -2530,6 +2569,7 @@ yyreduce:
 
             (yyval.val).floatVal = left_f.first - right_f.first;
             (yyval.val).type = FLOAT_TYPE;
+            handleExpression("SUB", valueToString((yyvsp[(1) - (3)].val)), valueToString((yyvsp[(3) - (3)].val)));
             printf("Debug: Adding (float) %f - %f\n", left_f.first, right_f.first);
             printf("Debug: Result (float) %f\n", (yyval.val).floatVal);
 
@@ -2540,7 +2580,7 @@ yyreduce:
   case 79:
 
 /* Line 1455 of yacc.c  */
-#line 1083 "parser.y"
+#line 1123 "parser.y"
     {
         (yyval.val) = Value();
         
@@ -2555,6 +2595,7 @@ yyreduce:
                 // printf("Debug: Comparing (int) %d >= %d\n", left_i.first, right_i.first);
                 (yyval.val).intVal = left_i.first * right_i.first;
                 (yyval.val).type = INT_TYPE;
+                handleExpression("MUL", valueToString((yyvsp[(1) - (3)].val)), valueToString((yyvsp[(3) - (3)].val)));
                 printf("Debug: Adding (int) %d + %d\n", left_i.first, right_i.first);
                 printf("Debug: Result (int) %d\n", (yyval.val).intVal);
             } else {
@@ -2572,6 +2613,7 @@ yyreduce:
 
             (yyval.val).floatVal = left_f.first * right_f.first;
             (yyval.val).type = FLOAT_TYPE;
+            handleExpression("MUL", valueToString((yyvsp[(1) - (3)].val)), valueToString((yyvsp[(3) - (3)].val)));
             printf("Debug: Adding (float) %f * %f\n", left_f.first, right_f.first);
             printf("Debug: Result (float) %f\n", (yyval.val).floatVal);
 
@@ -2582,7 +2624,7 @@ yyreduce:
   case 80:
 
 /* Line 1455 of yacc.c  */
-#line 1120 "parser.y"
+#line 1162 "parser.y"
     {
         (yyval.val) = Value();
         
@@ -2597,6 +2639,7 @@ yyreduce:
                 // printf("Debug: Comparing (int) %d >= %d\n", left_i.first, right_i.first);
                 (yyval.val).intVal = left_i.first / right_i.first;
                 (yyval.val).type = INT_TYPE;
+                handleExpression("DIV", valueToString((yyvsp[(1) - (3)].val)), valueToString((yyvsp[(3) - (3)].val)));
                 printf("Debug: Adding (int) %d / %d\n", left_i.first, right_i.first);
                 printf("Debug: Result (int) %d\n", (yyval.val).intVal);
             } else {
@@ -2614,6 +2657,7 @@ yyreduce:
 
             (yyval.val).floatVal = left_f.first / right_f.first;
             (yyval.val).type = FLOAT_TYPE;
+            handleExpression("DIV", valueToString((yyvsp[(1) - (3)].val)), valueToString((yyvsp[(3) - (3)].val)));
             printf("Debug: Adding (float) %f / %f\n", left_f.first, right_f.first);
             printf("Debug: Result (float) %f\n", (yyval.val).floatVal);
 
@@ -2624,7 +2668,7 @@ yyreduce:
   case 81:
 
 /* Line 1455 of yacc.c  */
-#line 1157 "parser.y"
+#line 1201 "parser.y"
     {
         (yyval.val) = Value();
         
@@ -2639,6 +2683,7 @@ yyreduce:
                 // printf("Debug: Comparing (int) %d >= %d\n", left_i.first, right_i.first);
                 (yyval.val).intVal = left_i.first % right_i.first;
                 (yyval.val).type = INT_TYPE;
+                handleExpression("MOD", valueToString((yyvsp[(1) - (3)].val)), valueToString((yyvsp[(3) - (3)].val)));
                 printf("Debug: Adding (int) %d % %d\n", left_i.first, right_i.first);
                 printf("Debug: Result (int) %d\n", (yyval.val).intVal);
             } else {
@@ -2658,14 +2703,14 @@ yyreduce:
   case 82:
 
 /* Line 1455 of yacc.c  */
-#line 1196 "parser.y"
+#line 1241 "parser.y"
     { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
     break;
 
   case 83:
 
 /* Line 1455 of yacc.c  */
-#line 1197 "parser.y"
+#line 1242 "parser.y"
     {
           // Create a new Value and apply negation
           (yyval.val) = (yyvsp[(2) - (2)].val);
@@ -2676,7 +2721,7 @@ yyreduce:
   case 84:
 
 /* Line 1455 of yacc.c  */
-#line 1202 "parser.y"
+#line 1247 "parser.y"
     {
           (yyval.val) = (yyvsp[(2) - (2)].val);
       ;}
@@ -2685,7 +2730,7 @@ yyreduce:
   case 85:
 
 /* Line 1455 of yacc.c  */
-#line 1205 "parser.y"
+#line 1250 "parser.y"
     {
           (yyval.val) = (yyvsp[(2) - (2)].val);
           (yyval.val).boolVal = !(yyval.val).boolVal;
@@ -2695,7 +2740,7 @@ yyreduce:
   case 86:
 
 /* Line 1455 of yacc.c  */
-#line 1209 "parser.y"
+#line 1254 "parser.y"
     {
           (yyval.val) = (yyvsp[(2) - (2)].val);
           (yyval.val).intVal = ~(yyval.val).intVal;
@@ -2705,7 +2750,7 @@ yyreduce:
   case 87:
 
 /* Line 1455 of yacc.c  */
-#line 1217 "parser.y"
+#line 1262 "parser.y"
     { 
          (yyval.val) = Value();
         SingleEntry* entry = symbolTable->get_SingleEntry(getValueName((yyvsp[(1) - (1)].val)));
@@ -2752,35 +2797,35 @@ yyreduce:
   case 88:
 
 /* Line 1455 of yacc.c  */
-#line 1258 "parser.y"
+#line 1303 "parser.y"
     { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
     break;
 
   case 89:
 
 /* Line 1455 of yacc.c  */
-#line 1259 "parser.y"
+#line 1304 "parser.y"
     { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
     break;
 
   case 90:
 
 /* Line 1455 of yacc.c  */
-#line 1260 "parser.y"
+#line 1305 "parser.y"
     { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
     break;
 
   case 91:
 
 /* Line 1455 of yacc.c  */
-#line 1261 "parser.y"
+#line 1306 "parser.y"
     { (yyval.val) = (yyvsp[(2) - (3)].val); ;}
     break;
 
   case 92:
 
 /* Line 1455 of yacc.c  */
-#line 1266 "parser.y"
+#line 1311 "parser.y"
     {
         printf("Entering new scope\n");
 
@@ -2812,7 +2857,7 @@ yyreduce:
   case 93:
 
 /* Line 1455 of yacc.c  */
-#line 1295 "parser.y"
+#line 1340 "parser.y"
     {
         printf("Leaving scope\n");
         if (symbolTable){
@@ -2834,7 +2879,7 @@ yyreduce:
 
 
 /* Line 1455 of yacc.c  */
-#line 2838 "parser.tab.c"
+#line 2883 "parser.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -3046,7 +3091,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 1312 "parser.y"
+#line 1357 "parser.y"
 
 
 

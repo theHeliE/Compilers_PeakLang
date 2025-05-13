@@ -239,6 +239,26 @@ Value* getLabel(){
     return result;
 }
 
+Value* handleExpression(const char* op, string op1, string op2) {
+        printf("Expression with %s operator\n", op);
+
+        // Generate result in a temporary variable
+        char temp[20];
+        snprintf(temp, sizeof(temp), "t%d", quadruples->resultCounter++);
+
+        // Add quadruple with the temporary variable as result
+        currentQuadruple->addQuadruple(op, op1, op2, temp);
+
+        // Create new TypeAndValue for the temporary result
+        Value* result = (Value*)malloc(sizeof(Value));
+        result->type = STRING_TYPE;
+        char* tempStr = strdup(temp);
+        result->stringVal = tempStr;
+
+        return result;
+
+}
+
 
 %}
 
@@ -802,12 +822,14 @@ logical_or_expression
         if (left_f.second && right_f.second) {
             // printf("Debug: Comparing (float) %f < %f\n", left_f.first, right_f.first);
             $$.boolVal = left_f.first || right_f.first;
+            handleExpression("OR", valueToString($1), valueToString($3));
         } else {
             std::pair<int, bool> left_i = resolve_operand_to_int($1, symbolTable);
             std::pair<int, bool> right_i = resolve_operand_to_int($3, symbolTable);
             if (left_i.second && right_i.second) {
                 // printf("Debug: Comparing (int) %d < %d\n", left_i.first, right_i.first);
                 $$.boolVal = left_i.first || right_i.first;
+                handleExpression("OR", valueToString($1), valueToString($3));
             } else {
                 yyerror("Type error or unresolved identifier in '||' comparison. Operands not comparable as float or int.");
                 $$.boolVal = false; 
@@ -827,12 +849,14 @@ logical_and_expression
         if (left_f.second && right_f.second) {
             // printf("Debug: Comparing (float) %f < %f\n", left_f.first, right_f.first);
             $$.boolVal = left_f.first && right_f.first;
+            handleExpression("AND", valueToString($1), valueToString($3));
         } else {
             std::pair<int, bool> left_i = resolve_operand_to_int($1, symbolTable);
             std::pair<int, bool> right_i = resolve_operand_to_int($3, symbolTable);
             if (left_i.second && right_i.second) {
                 // printf("Debug: Comparing (int) %d < %d\n", left_i.first, right_i.first);
                 $$.boolVal = left_i.first && right_i.first;
+                handleExpression("AND", valueToString($1), valueToString($3));
             } else {
                 yyerror("Type error or unresolved identifier in '&&' comparison. Operands not comparable as float or int.");
                 $$.boolVal = false; 
@@ -868,12 +892,14 @@ equality_expression
         if (left_f.second && right_f.second) {
             // printf("Debug: Comparing (float) %f < %f\n", left_f.first, right_f.first);
             $$.boolVal = left_f.first == right_f.first;
+            handleExpression("EQ", valueToString($1), valueToString($3));
         } else {
             std::pair<int, bool> left_i = resolve_operand_to_int($1, symbolTable);
             std::pair<int, bool> right_i = resolve_operand_to_int($3, symbolTable);
             if (left_i.second && right_i.second) {
                 // printf("Debug: Comparing (int) %d < %d\n", left_i.first, right_i.first);
                 $$.boolVal = left_i.first == right_i.first;
+                handleExpression("EQ", valueToString($1), valueToString($3));
             } else {
                 yyerror("Type error or unresolved identifier in '==' comparison. Operands not comparable as float or int.");
                 $$.boolVal = false; 
@@ -890,12 +916,14 @@ equality_expression
         if (left_f.second && right_f.second) {
             // printf("Debug: Comparing (float) %f < %f\n", left_f.first, right_f.first);
             $$.boolVal = left_f.first != right_f.first;
+            handleExpression("NE", valueToString($1), valueToString($3));
         } else {
             std::pair<int, bool> left_i = resolve_operand_to_int($1, symbolTable);
             std::pair<int, bool> right_i = resolve_operand_to_int($3, symbolTable);
             if (left_i.second && right_i.second) {
                 // printf("Debug: Comparing (int) %d < %d\n", left_i.first, right_i.first);
                 $$.boolVal = left_i.first != right_i.first;
+                handleExpression("NE", valueToString($1), valueToString($3));
             } else {
                 yyerror("Type error or unresolved identifier in '!=' comparison. Operands not comparable as float or int.");
                 $$.boolVal = false; 
@@ -915,12 +943,14 @@ relational_expression
         if (left_f.second && right_f.second) {
             // printf("Debug: Comparing (float) %f < %f\n", left_f.first, right_f.first);
             $$.boolVal = left_f.first < right_f.first;
+            handleExpression("LT", valueToString($1), valueToString($3));
         } else {
             std::pair<int, bool> left_i = resolve_operand_to_int($1, symbolTable);
             std::pair<int, bool> right_i = resolve_operand_to_int($3, symbolTable);
             if (left_i.second && right_i.second) {
                 // printf("Debug: Comparing (int) %d < %d\n", left_i.first, right_i.first);
                 $$.boolVal = left_i.first < right_i.first;
+                handleExpression("LT", valueToString($1), valueToString($3));
             } else {
                 yyerror("Type error or unresolved identifier in '<' comparison. Operands not comparable as float or int.");
                 $$.boolVal = false; 
@@ -936,12 +966,14 @@ relational_expression
         if (left_f.second && right_f.second) {
             // printf("Debug: Comparing (float) %f > %f\n", left_f.first, right_f.first);
             $$.boolVal = left_f.first > right_f.first;
+            handleExpression("GT", valueToString($1), valueToString($3));
         } else {
             std::pair<int, bool> left_i = resolve_operand_to_int($1, symbolTable);
             std::pair<int, bool> right_i = resolve_operand_to_int($3, symbolTable);
             if (left_i.second && right_i.second) {
                 // printf("Debug: Comparing (int) %d > %d\n", left_i.first, right_i.first);
                 $$.boolVal = left_i.first > right_i.first;
+                handleExpression("GT", valueToString($1), valueToString($3));
             } else {
                 yyerror("Type error or unresolved identifier in '>' comparison. Operands not comparable as float or int.");
                 $$.boolVal = false;
@@ -957,12 +989,14 @@ relational_expression
         if (left_f.second && right_f.second) {
             // printf("Debug: Comparing (float) %f <= %f\n", left_f.first, right_f.first);
             $$.boolVal = left_f.first <= right_f.first;
+            handleExpression("LE", valueToString($1), valueToString($3));
         } else {
             std::pair<int, bool> left_i = resolve_operand_to_int($1, symbolTable);
             std::pair<int, bool> right_i = resolve_operand_to_int($3, symbolTable);
             if (left_i.second && right_i.second) {
                 // printf("Debug: Comparing (int) %d <= %d\n", left_i.first, right_i.first);
                 $$.boolVal = left_i.first <= right_i.first;
+                handleExpression("LE", valueToString($1), valueToString($3));
             } else {
                 yyerror("Type error or unresolved identifier in '<=' comparison. Operands not comparable as float or int.");
                 $$.boolVal = false;
@@ -978,12 +1012,14 @@ relational_expression
         if (left_f.second && right_f.second) {
             // printf("Debug: Comparing (float) %f >= %f\n", left_f.first, right_f.first);
             $$.boolVal = left_f.first >= right_f.first;
+            handleExpression("GE", valueToString($1), valueToString($3));
         } else {
             std::pair<int, bool> left_i = resolve_operand_to_int($1, symbolTable);
             std::pair<int, bool> right_i = resolve_operand_to_int($3, symbolTable);
             if (left_i.second && right_i.second) {
                 // printf("Debug: Comparing (int) %d >= %d\n", left_i.first, right_i.first);
                 $$.boolVal = left_i.first >= right_i.first;
+                handleExpression("GE", valueToString($1), valueToString($3));
             } else {
                 yyerror("Type error or unresolved identifier in '>=' comparison. Operands not comparable as float or int.");
                 $$.boolVal = false;
@@ -1015,6 +1051,7 @@ additive_expression
                 // printf("Debug: Comparing (int) %d >= %d\n", left_i.first, right_i.first);
                 $$.intVal = left_i.first + right_i.first;
                 $$.type = INT_TYPE;
+                handleExpression("ADD", valueToString($1), valueToString($3));
                 printf("Debug: Adding (int) %d + %d\n", left_i.first, right_i.first);
                 printf("Debug: Result (int) %d\n", $$.intVal);
             } else {
@@ -1032,6 +1069,7 @@ additive_expression
 
             $$.floatVal = left_f.first + right_f.first;
             $$.type = FLOAT_TYPE;
+            handleExpression("ADD", valueToString($1), valueToString($3));
             printf("Debug: Adding (float) %f + %f\n", left_f.first, right_f.first);
             printf("Debug: Result (float) %f\n", $$.floatVal);
 
@@ -1053,6 +1091,7 @@ additive_expression
                 // printf("Debug: Comparing (int) %d >= %d\n", left_i.first, right_i.first);
                 $$.intVal = left_i.first - right_i.first;
                 $$.type = INT_TYPE;
+                handleExpression("SUB", valueToString($1), valueToString($3));
                 printf("Debug: Adding (int) %d - %d\n", left_i.first, right_i.first);
                 printf("Debug: Result (int) %d\n", $$.intVal);
             } else {
@@ -1070,6 +1109,7 @@ additive_expression
 
             $$.floatVal = left_f.first - right_f.first;
             $$.type = FLOAT_TYPE;
+            handleExpression("SUB", valueToString($1), valueToString($3));
             printf("Debug: Adding (float) %f - %f\n", left_f.first, right_f.first);
             printf("Debug: Result (float) %f\n", $$.floatVal);
 
@@ -1094,6 +1134,7 @@ multiplicative_expression
                 // printf("Debug: Comparing (int) %d >= %d\n", left_i.first, right_i.first);
                 $$.intVal = left_i.first * right_i.first;
                 $$.type = INT_TYPE;
+                handleExpression("MUL", valueToString($1), valueToString($3));
                 printf("Debug: Adding (int) %d + %d\n", left_i.first, right_i.first);
                 printf("Debug: Result (int) %d\n", $$.intVal);
             } else {
@@ -1111,6 +1152,7 @@ multiplicative_expression
 
             $$.floatVal = left_f.first * right_f.first;
             $$.type = FLOAT_TYPE;
+            handleExpression("MUL", valueToString($1), valueToString($3));
             printf("Debug: Adding (float) %f * %f\n", left_f.first, right_f.first);
             printf("Debug: Result (float) %f\n", $$.floatVal);
 
@@ -1131,6 +1173,7 @@ multiplicative_expression
                 // printf("Debug: Comparing (int) %d >= %d\n", left_i.first, right_i.first);
                 $$.intVal = left_i.first / right_i.first;
                 $$.type = INT_TYPE;
+                handleExpression("DIV", valueToString($1), valueToString($3));
                 printf("Debug: Adding (int) %d / %d\n", left_i.first, right_i.first);
                 printf("Debug: Result (int) %d\n", $$.intVal);
             } else {
@@ -1148,6 +1191,7 @@ multiplicative_expression
 
             $$.floatVal = left_f.first / right_f.first;
             $$.type = FLOAT_TYPE;
+            handleExpression("DIV", valueToString($1), valueToString($3));
             printf("Debug: Adding (float) %f / %f\n", left_f.first, right_f.first);
             printf("Debug: Result (float) %f\n", $$.floatVal);
 
@@ -1168,6 +1212,7 @@ multiplicative_expression
                 // printf("Debug: Comparing (int) %d >= %d\n", left_i.first, right_i.first);
                 $$.intVal = left_i.first % right_i.first;
                 $$.type = INT_TYPE;
+                handleExpression("MOD", valueToString($1), valueToString($3));
                 printf("Debug: Adding (int) %d % %d\n", left_i.first, right_i.first);
                 printf("Debug: Result (int) %d\n", $$.intVal);
             } else {
