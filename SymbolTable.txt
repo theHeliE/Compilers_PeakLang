@@ -1,0 +1,13 @@
+////////////////////////////////////////////////////////////////////////////////////////
+Name                Type           isConst   isUsed              Value     
+----------------------------------------------------------------------------------------
+p                   INT            false     false               69
+v                   BOOL           false     false               true
+t                   INT            false     false               69
+u                   INT            false     false               6
+z                   BOOL           false     false               true
+TOP_G               INT            true      false               69
+y                   INT            false     false               10
+x                   INT            false     false               10
+
+////////////////////////////////////////////////////////////////////////////////////////

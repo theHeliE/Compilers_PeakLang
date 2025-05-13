@@ -4,8 +4,8 @@ FLEX = "C:/MinGW/GnuWin32/bin/flex"
 all: compiler.exe
 
 compiler.exe:
-	$(BISON) -d -v parser.y
-	$(FLEX) lexer.l
+	bison -d -v parser.y
+	flex lexer.l
 	g++ -c SymbolTable.cpp -o SymbolTable.o
 	g++ -c value_helpers.cpp -o value_helpers.o
 	g++ -c quadruples.cpp -o quadruples.o

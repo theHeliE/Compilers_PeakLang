@@ -275,7 +275,7 @@ variable_definition:
     | type_specifier identifier_list ASSIGNMENT expression ';'
     {
            if (getValueName($1)!=enumToString($4.type)) {
-            yyerror("Type mismatch in variable declaration");
+            yyerror("Elet adab walahy :/, Type mismatch in variable declaration");
         }
         void* allocated_val_ptr = allocateValueFromExpression($4); 
 
@@ -301,6 +301,9 @@ variable_definition:
     | THABET type_specifier identifier_list ASSIGNMENT expression ';'
     {
         printf("variable_declaration Rule 3\n");
+            if (getValueName($2)!=enumToString($5.type)) {
+                yyerror("Elet adab walahy :/, Type mismatch in variable declaration");
+            }
 
          // $2 is type_specifier (Value), $3 is identifier_list (Value), $5 is expression (Value)
         
@@ -348,11 +351,11 @@ identifier_list:
  /////////////////////////////////////// TYPE ///////////////////////////////////////
 
 type_specifier:
-    INT     { $$ = $1; }
-    | FLOAT   { $$ = $1; }
-    | CHAR    { $$ = $1; }
-    | VOID    { $$ = $1; }
-    | BOOL    { $$ = $1; }
+    INT     { $$.stringVal = "INT"; }
+    | FLOAT   { $$.stringVal = "FLOAT"; }
+    | CHAR    { $$.stringVal = "CHAR"; }
+    | VOID    { $$.stringVal = "VOID";}
+    | BOOL    { $$.stringVal = "BOOL"; }
     ;
 
 expression

@@ -625,15 +625,15 @@ static const yytype_int8 yyrhs[] =
 static const yytype_uint16 yyrline[] =
 {
        0,   214,   214,   218,   225,   229,   241,   245,   249,   260,
-     275,   301,   332,   340,   351,   352,   353,   354,   355,   359,
-     362,   372,   381,   382,   389,   393,   394,   398,   399,   403,
-     404,   410,   411,   419,   420,   421,   422,   423,   432,   440,
-     447,   451,   452,   456,   457,   466,   471,   477,   484,   485,
-     486,   490,   509,   528,   529,   553,   554,   558,   559,   563,
-     564,   568,   569,   573,   574,   578,   579,   582,   586,   587,
-     601,   615,   629,   646,   647,   648,   652,   653,   654,   658,
-     659,   660,   661,   673,   674,   679,   682,   686,   694,   735,
-     736,   737,   738
+     275,   301,   335,   343,   354,   355,   356,   357,   358,   362,
+     365,   375,   384,   385,   392,   396,   397,   401,   402,   406,
+     407,   413,   414,   422,   423,   424,   425,   426,   435,   443,
+     450,   454,   455,   459,   460,   469,   474,   480,   487,   488,
+     489,   493,   512,   531,   532,   556,   557,   561,   562,   566,
+     567,   571,   572,   576,   577,   581,   582,   585,   589,   590,
+     604,   618,   632,   649,   650,   651,   655,   656,   657,   661,
+     662,   663,   664,   676,   677,   682,   685,   689,   697,   738,
+     739,   740,   741
 };
 #endif
 
@@ -1781,7 +1781,7 @@ yyreduce:
 #line 276 "parser.y"
     {
            if (getValueName((yyvsp[(1) - (5)].val))!=enumToString((yyvsp[(4) - (5)].val).type)) {
-            yyerror("Type mismatch in variable declaration");
+            yyerror("Elet adab walahy :/, Type mismatch in variable declaration");
         }
         void* allocated_val_ptr = allocateValueFromExpression((yyvsp[(4) - (5)].val)); 
 
@@ -1808,6 +1808,9 @@ yyreduce:
 #line 302 "parser.y"
     {
         printf("variable_declaration Rule 3\n");
+            if (getValueName((yyvsp[(2) - (6)].val))!=enumToString((yyvsp[(5) - (6)].val).type)) {
+                yyerror("Elet adab walahy :/, Type mismatch in variable declaration");
+            }
 
          // $2 is type_specifier (Value), $3 is identifier_list (Value), $5 is expression (Value)
         
@@ -1834,7 +1837,7 @@ yyreduce:
   case 12:
 
 /* Line 1455 of yacc.c  */
-#line 333 "parser.y"
+#line 336 "parser.y"
     {
         (yyval.val) = (yyvsp[(1) - (1)].val);
     ;}
@@ -1843,7 +1846,7 @@ yyreduce:
   case 13:
 
 /* Line 1455 of yacc.c  */
-#line 341 "parser.y"
+#line 344 "parser.y"
     {
         // $$ = (char*)malloc(strlen($1) + strlen($3) + 2);
         // sprintf($$, "%s,%s", $1, $3);
@@ -1853,42 +1856,42 @@ yyreduce:
   case 14:
 
 /* Line 1455 of yacc.c  */
-#line 351 "parser.y"
-    { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
+#line 354 "parser.y"
+    { (yyval.val).stringVal = "INT"; ;}
     break;
 
   case 15:
 
 /* Line 1455 of yacc.c  */
-#line 352 "parser.y"
-    { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
+#line 355 "parser.y"
+    { (yyval.val).stringVal = "FLOAT"; ;}
     break;
 
   case 16:
 
 /* Line 1455 of yacc.c  */
-#line 353 "parser.y"
-    { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
+#line 356 "parser.y"
+    { (yyval.val).stringVal = "CHAR"; ;}
     break;
 
   case 17:
 
 /* Line 1455 of yacc.c  */
-#line 354 "parser.y"
-    { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
+#line 357 "parser.y"
+    { (yyval.val).stringVal = "VOID";;}
     break;
 
   case 18:
 
 /* Line 1455 of yacc.c  */
-#line 355 "parser.y"
-    { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
+#line 358 "parser.y"
+    { (yyval.val).stringVal = "BOOL"; ;}
     break;
 
   case 19:
 
 /* Line 1455 of yacc.c  */
-#line 359 "parser.y"
+#line 362 "parser.y"
     {
         printf("Assignment Expression\n");
     ;}
@@ -1897,21 +1900,21 @@ yyreduce:
   case 22:
 
 /* Line 1455 of yacc.c  */
-#line 381 "parser.y"
+#line 384 "parser.y"
     { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
     break;
 
   case 23:
 
 /* Line 1455 of yacc.c  */
-#line 382 "parser.y"
+#line 385 "parser.y"
     { (yyval.val) = (yyvsp[(1) - (3)].val); ;}
     break;
 
   case 38:
 
 /* Line 1455 of yacc.c  */
-#line 433 "parser.y"
+#line 436 "parser.y"
     {
         printf("Selection statement\n");
     ;}
@@ -1920,7 +1923,7 @@ yyreduce:
   case 51:
 
 /* Line 1455 of yacc.c  */
-#line 491 "parser.y"
+#line 494 "parser.y"
     {
        // check if the function is returning a value with same type
         // TODO: string functionName = (active functions) I would like to get the function name from the symbol table
@@ -1941,7 +1944,7 @@ yyreduce:
   case 52:
 
 /* Line 1455 of yacc.c  */
-#line 510 "parser.y"
+#line 513 "parser.y"
     {
         // check if the function is returning a value with same type
         // TODO: string functionName = (active functions) I would like to get the function name from the symbol table
@@ -1960,7 +1963,7 @@ yyreduce:
   case 54:
 
 /* Line 1455 of yacc.c  */
-#line 529 "parser.y"
+#line 532 "parser.y"
     {
         printf("Assignment expression\n");
         // $1 is IDENTIFIER, $3 is assignment_expression (Value)
@@ -1984,7 +1987,7 @@ yyreduce:
   case 66:
 
 /* Line 1455 of yacc.c  */
-#line 579 "parser.y"
+#line 582 "parser.y"
     {
         
     ;}
@@ -1993,14 +1996,14 @@ yyreduce:
   case 68:
 
 /* Line 1455 of yacc.c  */
-#line 586 "parser.y"
+#line 589 "parser.y"
     { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
     break;
 
   case 69:
 
 /* Line 1455 of yacc.c  */
-#line 587 "parser.y"
+#line 590 "parser.y"
     {
         (yyval.val) = Value();
         (yyval.val).type = BOOL_TYPE;
@@ -2020,7 +2023,7 @@ yyreduce:
   case 70:
 
 /* Line 1455 of yacc.c  */
-#line 601 "parser.y"
+#line 604 "parser.y"
     {
         (yyval.val) = Value();
         (yyval.val).type = BOOL_TYPE;
@@ -2040,7 +2043,7 @@ yyreduce:
   case 71:
 
 /* Line 1455 of yacc.c  */
-#line 615 "parser.y"
+#line 618 "parser.y"
     {
         (yyval.val) = Value();
         (yyval.val).type = BOOL_TYPE;
@@ -2060,7 +2063,7 @@ yyreduce:
   case 72:
 
 /* Line 1455 of yacc.c  */
-#line 629 "parser.y"
+#line 632 "parser.y"
     {
         (yyval.val) = Value();
         (yyval.val).type = BOOL_TYPE;
@@ -2080,14 +2083,14 @@ yyreduce:
   case 83:
 
 /* Line 1455 of yacc.c  */
-#line 673 "parser.y"
+#line 676 "parser.y"
     { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
     break;
 
   case 84:
 
 /* Line 1455 of yacc.c  */
-#line 674 "parser.y"
+#line 677 "parser.y"
     {
           // Create a new Value and apply negation
           (yyval.val) = (yyvsp[(2) - (2)].val);
@@ -2098,7 +2101,7 @@ yyreduce:
   case 85:
 
 /* Line 1455 of yacc.c  */
-#line 679 "parser.y"
+#line 682 "parser.y"
     {
           (yyval.val) = (yyvsp[(2) - (2)].val);
       ;}
@@ -2107,7 +2110,7 @@ yyreduce:
   case 86:
 
 /* Line 1455 of yacc.c  */
-#line 682 "parser.y"
+#line 685 "parser.y"
     {
           (yyval.val) = (yyvsp[(2) - (2)].val);
           (yyval.val).boolVal = !(yyval.val).boolVal;
@@ -2117,7 +2120,7 @@ yyreduce:
   case 87:
 
 /* Line 1455 of yacc.c  */
-#line 686 "parser.y"
+#line 689 "parser.y"
     {
           (yyval.val) = (yyvsp[(2) - (2)].val);
           (yyval.val).intVal = ~(yyval.val).intVal;
@@ -2127,7 +2130,7 @@ yyreduce:
   case 88:
 
 /* Line 1455 of yacc.c  */
-#line 694 "parser.y"
+#line 697 "parser.y"
     { 
          (yyval.val) = Value();
         SingleEntry* entry = symbolTable->get_SingleEntry(getValueName((yyvsp[(1) - (1)].val)));
@@ -2174,35 +2177,35 @@ yyreduce:
   case 89:
 
 /* Line 1455 of yacc.c  */
-#line 735 "parser.y"
+#line 738 "parser.y"
     { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
     break;
 
   case 90:
 
 /* Line 1455 of yacc.c  */
-#line 736 "parser.y"
+#line 739 "parser.y"
     { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
     break;
 
   case 91:
 
 /* Line 1455 of yacc.c  */
-#line 737 "parser.y"
+#line 740 "parser.y"
     { (yyval.val) = (yyvsp[(1) - (1)].val); ;}
     break;
 
   case 92:
 
 /* Line 1455 of yacc.c  */
-#line 738 "parser.y"
+#line 741 "parser.y"
     { (yyval.val) = (yyvsp[(2) - (3)].val); ;}
     break;
 
 
 
 /* Line 1455 of yacc.c  */
-#line 2206 "parser.tab.c"
+#line 2209 "parser.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2414,7 +2417,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 741 "parser.y"
+#line 744 "parser.y"
 
 
 void yyerror(const char *s) {

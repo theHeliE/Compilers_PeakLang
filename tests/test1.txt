@@ -6,4 +6,5 @@ int t =69;
 int u = 6;
 bool v = t >= u;
 int p = t;
-float n = t;
+
+thabet int TOP_G = t;
