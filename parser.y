@@ -19,6 +19,7 @@
 #include <fstream>
 #include <iomanip>
 #include <cstring>
+#include <stdbool.h>
 
 using namespace std;
 
@@ -79,6 +80,7 @@ std::pair<int, bool> resolve_operand_to_int(const Value& operand, SymbolTable* t
 // Returns a pair: {value, success_flag}
 std::pair<float, bool> resolve_operand_to_float(const Value& operand, SymbolTable* table) {
     // Check if it's an identifier that needs lookup
+
     if (operand.stringVal != nullptr && 
         (operand.type != INT_TYPE && operand.type != FLOAT_TYPE && 
          operand.type != BOOL_TYPE && operand.type != CHAR_TYPE && 
@@ -273,6 +275,7 @@ Value* getLabel(){
 
 
 %type <val> expression
+%type <val> expression_statement
 %type <val> identifier_list
 %type <val> assignment_expression
 %type <val> logical_or_expression
@@ -290,6 +293,7 @@ Value* getLabel(){
 %type <val> type_specifier
 %type <val> parameter_list
 %type <val> parameter_declaration
+%type <val> loop_statement
 %type <val> selection_statement
 %type <ptr> LEAVE_SCOPE
 %type <ptr> compound_statement
@@ -658,7 +662,54 @@ loop_statement:
 
     // eg. for (i = 0; i < 10; i++) printf("i is %d", i);
     /* | FOR { symbolTable= new SymbolTable(symbolTable);} '(' expression_statement expression_statement expression ')' statement */
-    | FOR '(' expression_statement expression_statement expression ')' statement
+    | FOR '(' expression_statement expression_statement ENTER_SCOPE expression LEAVE_SCOPE ')' compound_statement
+    {
+        // LABEL
+        // JF
+        // ADD
+
+        // ASSIGN
+        // ADD
+        // ASSIGN
+        // JMP
+        // LABEL
+
+        printf("FOR LOOP\n");
+
+
+        // label el barg3lo kol marra
+        Value* JMP_LOOP_label = getLabel();
+        currentQuadruple->addQuadruple("LABEL", valueToString(*JMP_LOOP_label), "", "");
+
+        
+        
+
+        // label el hakhrog mn el loop
+        Value* JF_label = getLabel();
+        currentQuadruple->addQuadruple("JF", valueToString($4), valueToString(*JF_label), "");
+
+        // EXPR
+        Quadruples * LEAVESCOPEQuadruples = (Quadruples*)$7;
+        currentQuadruple = LEAVESCOPEQuadruples->merge(currentQuadruple);
+        
+
+        // momken yb2a feh merge tany
+
+
+        // return back to loop top
+        currentQuadruple->addQuadruple("GOTO", "", valueToString(*JMP_LOOP_label), "");
+
+        currentQuadruple->addQuadruple("LABEL", valueToString(*JF_label), "", "");
+
+
+        free(JF_label->stringVal); // Assuming getLabel strdup'd and valueToString doesn't take ownership
+        free(JF_label);
+        free(JMP_LOOP_label->stringVal); // Assuming getLabel strdup'd and valueToString doesn't take ownership
+        free(JMP_LOOP_label);
+
+
+
+    }
     ;
 
 /////////////////////////////////////// JUMP ///////////////////////////////////////
@@ -944,14 +995,187 @@ shift_expression
 additive_expression
     : multiplicative_expression
     | additive_expression '+' multiplicative_expression
+    {
+       $$ = Value();
+        
+        // check if type is int
+        if ($1.type == INT_TYPE && $3.type == INT_TYPE) {
+            $$.type = INT_TYPE;
+            // check if the operands are of the same type
+            std::pair<int, bool> left_i = resolve_operand_to_int($1, symbolTable);
+            std::pair<int, bool> right_i = resolve_operand_to_int($3, symbolTable);
+
+            if (left_i.second && right_i.second) {
+                // printf("Debug: Comparing (int) %d >= %d\n", left_i.first, right_i.first);
+                $$.intVal = left_i.first + right_i.first;
+                $$.type = INT_TYPE;
+                printf("Debug: Adding (int) %d + %d\n", left_i.first, right_i.first);
+                printf("Debug: Result (int) %d\n", $$.intVal);
+            } else {
+                yyerror("Type error or unresolved '+' operator. Operands not comparable as float or int.");
+                $$.intVal = 0;
+                $$.floatVal = 0.0;
+                $$.type = UNKNOWN_TYPE;
+            }
+        }
+        else if ($1.type == FLOAT_TYPE && $3.type == FLOAT_TYPE) {
+            $$.type = FLOAT_TYPE;
+            // check if the operands are of the same type
+            std::pair<float, bool> left_f = resolve_operand_to_float($1, symbolTable);
+            std::pair<float, bool> right_f = resolve_operand_to_float($3, symbolTable);
+
+            $$.floatVal = left_f.first + right_f.first;
+            $$.type = FLOAT_TYPE;
+            printf("Debug: Adding (float) %f + %f\n", left_f.first, right_f.first);
+            printf("Debug: Result (float) %f\n", $$.floatVal);
+
+        }
+        
+    }
     | additive_expression '-' multiplicative_expression
+    {
+        $$ = Value();
+        
+        // check if type is int
+        if ($1.type == INT_TYPE && $3.type == INT_TYPE) {
+            $$.type = INT_TYPE;
+            // check if the operands are of the same type
+            std::pair<int, bool> left_i = resolve_operand_to_int($1, symbolTable);
+            std::pair<int, bool> right_i = resolve_operand_to_int($3, symbolTable);
+
+            if (left_i.second && right_i.second) {
+                // printf("Debug: Comparing (int) %d >= %d\n", left_i.first, right_i.first);
+                $$.intVal = left_i.first - right_i.first;
+                $$.type = INT_TYPE;
+                printf("Debug: Adding (int) %d - %d\n", left_i.first, right_i.first);
+                printf("Debug: Result (int) %d\n", $$.intVal);
+            } else {
+                yyerror("Type error or unresolved '-' operator. Operands not comparable as float or int.");
+                $$.intVal = 0;
+                $$.floatVal = 0.0;
+                $$.type = UNKNOWN_TYPE;
+            }
+        }
+        else if ($1.type == FLOAT_TYPE && $3.type == FLOAT_TYPE) {
+            $$.type = FLOAT_TYPE;
+            // check if the operands are of the same type
+            std::pair<float, bool> left_f = resolve_operand_to_float($1, symbolTable);
+            std::pair<float, bool> right_f = resolve_operand_to_float($3, symbolTable);
+
+            $$.floatVal = left_f.first - right_f.first;
+            $$.type = FLOAT_TYPE;
+            printf("Debug: Adding (float) %f - %f\n", left_f.first, right_f.first);
+            printf("Debug: Result (float) %f\n", $$.floatVal);
+
+        }
+    }
     ;
 
 multiplicative_expression
     : unary_expression
     | multiplicative_expression '*' unary_expression
+    {
+        $$ = Value();
+        
+        // check if type is int
+        if ($1.type == INT_TYPE && $3.type == INT_TYPE) {
+            $$.type = INT_TYPE;
+            // check if the operands are of the same type
+            std::pair<int, bool> left_i = resolve_operand_to_int($1, symbolTable);
+            std::pair<int, bool> right_i = resolve_operand_to_int($3, symbolTable);
+
+            if (left_i.second && right_i.second) {
+                // printf("Debug: Comparing (int) %d >= %d\n", left_i.first, right_i.first);
+                $$.intVal = left_i.first * right_i.first;
+                $$.type = INT_TYPE;
+                printf("Debug: Adding (int) %d + %d\n", left_i.first, right_i.first);
+                printf("Debug: Result (int) %d\n", $$.intVal);
+            } else {
+                yyerror("Type error or unresolved '*' operator. Operands not comparable as float or int.");
+                $$.intVal = 0;
+                $$.floatVal = 0.0;
+                $$.type = UNKNOWN_TYPE;
+            }
+        }
+        else if ($1.type == FLOAT_TYPE && $3.type == FLOAT_TYPE) {
+            $$.type = FLOAT_TYPE;
+            // check if the operands are of the same type
+            std::pair<float, bool> left_f = resolve_operand_to_float($1, symbolTable);
+            std::pair<float, bool> right_f = resolve_operand_to_float($3, symbolTable);
+
+            $$.floatVal = left_f.first * right_f.first;
+            $$.type = FLOAT_TYPE;
+            printf("Debug: Adding (float) %f * %f\n", left_f.first, right_f.first);
+            printf("Debug: Result (float) %f\n", $$.floatVal);
+
+        }
+    }
     | multiplicative_expression '/' unary_expression
+    {
+        $$ = Value();
+        
+        // check if type is int
+        if ($1.type == INT_TYPE && $3.type == INT_TYPE) {
+            $$.type = INT_TYPE;
+            // check if the operands are of the same type
+            std::pair<int, bool> left_i = resolve_operand_to_int($1, symbolTable);
+            std::pair<int, bool> right_i = resolve_operand_to_int($3, symbolTable);
+
+            if (left_i.second && right_i.second) {
+                // printf("Debug: Comparing (int) %d >= %d\n", left_i.first, right_i.first);
+                $$.intVal = left_i.first / right_i.first;
+                $$.type = INT_TYPE;
+                printf("Debug: Adding (int) %d / %d\n", left_i.first, right_i.first);
+                printf("Debug: Result (int) %d\n", $$.intVal);
+            } else {
+                yyerror("Type error or unresolved '/' operator. Operands not comparable as float or int.");
+                $$.intVal = 0;
+                $$.floatVal = 0.0;
+                $$.type = UNKNOWN_TYPE;
+            }
+        }
+        else if ($1.type == FLOAT_TYPE && $3.type == FLOAT_TYPE) {
+            $$.type = FLOAT_TYPE;
+            // check if the operands are of the same type
+            std::pair<float, bool> left_f = resolve_operand_to_float($1, symbolTable);
+            std::pair<float, bool> right_f = resolve_operand_to_float($3, symbolTable);
+
+            $$.floatVal = left_f.first / right_f.first;
+            $$.type = FLOAT_TYPE;
+            printf("Debug: Adding (float) %f / %f\n", left_f.first, right_f.first);
+            printf("Debug: Result (float) %f\n", $$.floatVal);
+
+        }
+    }
     | multiplicative_expression '%' unary_expression
+    {
+        $$ = Value();
+        
+        // check if type is int
+        if ($1.type == INT_TYPE && $3.type == INT_TYPE) {
+            $$.type = INT_TYPE;
+            // check if the operands are of the same type
+            std::pair<int, bool> left_i = resolve_operand_to_int($1, symbolTable);
+            std::pair<int, bool> right_i = resolve_operand_to_int($3, symbolTable);
+
+            if (left_i.second && right_i.second) {
+                // printf("Debug: Comparing (int) %d >= %d\n", left_i.first, right_i.first);
+                $$.intVal = left_i.first % right_i.first;
+                $$.type = INT_TYPE;
+                printf("Debug: Adding (int) %d % %d\n", left_i.first, right_i.first);
+                printf("Debug: Result (int) %d\n", $$.intVal);
+            } else {
+                yyerror("Type error or unresolved '%' operator. Operands not comparable as float or int.");
+                $$.intVal = 0;
+                $$.floatVal = 0.0;
+                $$.type = UNKNOWN_TYPE;
+            }
+        }
+        else if ($1.type == FLOAT_TYPE && $3.type == FLOAT_TYPE) {
+            yyerror("DID YOU TAKE MATH COURSES???? da modulus w float ya 3m");
+
+        }
+    }
  ;
 
 /* unary_expression
