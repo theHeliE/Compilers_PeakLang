@@ -367,7 +367,7 @@ external_declaration:
     }
     | compound_statement
     {
-        printf("Main scope\n");
+        printf("Expression statement\n");
         Quadruples * ScopeQuadruples = (Quadruples*)$1;
         currentQuadruple = ScopeQuadruples->merge(currentQuadruple);
     }
