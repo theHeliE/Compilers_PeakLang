@@ -666,7 +666,7 @@ loop_statement:
 
     // eg. for (i = 0; i < 10; i++) printf("i is %d", i);
     /* | FOR { symbolTable= new SymbolTable(symbolTable);} '(' expression_statement expression_statement expression ')' statement */
-    | FOR '(' expression_statement expression_statement ENTER_SCOPE expression LEAVE_SCOPE ')' compound_statement
+    | FOR '(' variable_definition ENTER_SCOPE expression_statement LEAVE_SCOPE ENTER_SCOPE expression LEAVE_SCOPE ')' compound_statement
     {
         // LABEL
         // JF
@@ -690,14 +690,16 @@ loop_statement:
 
         // label el hakhrog mn el loop
         Value* JF_label = getLabel();
-        currentQuadruple->addQuadruple("JF", valueToString($4), valueToString(*JF_label), "");
+        currentQuadruple->addQuadruple("JF", valueToString($5), valueToString(*JF_label), "");
 
         // EXPR
-        Quadruples * LEAVESCOPEQuadruples = (Quadruples*)$7;
+        Quadruples * LEAVESCOPEQuadruples = (Quadruples*)$9;
         currentQuadruple = LEAVESCOPEQuadruples->merge(currentQuadruple);
         
 
         // momken yb2a feh merge tany
+        Quadruples * ScopeQuadruples = (Quadruples*)$11;
+        currentQuadruple = ScopeQuadruples->merge(currentQuadruple);
 
 
         // return back to loop top
