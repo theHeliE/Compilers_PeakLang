@@ -1,19 +1,10 @@
 ////////////////////////////////////////////////////////////////////////////////////////
 Name                Type           isConst   isUsed              Value     
 ----------------------------------------------------------------------------------------
-f                   CHAR           false     false               g
-x                   INT            false     true                12
-y                   INT            false     false               10
-TOP_G               INT            true      false               69
+x                   INT            false     true                13
 or_expr2            INT            false     false               0
-z                   BOOL           false     false               true
-logic1              FLOAT          false     false               0
-t                   INT            false     false               69
-v                   BOOL           false     false               true
-u                   INT            false     false               6
-logic2              FLOAT          false     false               0
-p                   INT            false     false               69
 or_expr1            INT            false     false               1
-result              BOOL           false     false               true
+logic2              FLOAT          false     false               0
+logic1              FLOAT          false     false               0
 
 ////////////////////////////////////////////////////////////////////////////////////////

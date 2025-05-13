@@ -567,12 +567,37 @@ selection_statement:
 
     // eg. if (x == 5) printf("x is 5"); else printf("x is not 5");
     | IF '(' expression ')' statement ELSE statement{
-        Value * else_label = getLabel();
 
-        // quadruples->addQuadruple("JF", valueToString($3), valueToString(else_label),"");
-        // printf("Debug: Adding JF Quadruple for IF statement\n");
+         Value* else_label = getLabel(); // Label to jump to if condition is false (i.e., after the statement)
 
-        
+        // Quadruple: If condition ($3) is false, jump to end_if_label
+        quadruples->addQuadruple("JF", valueToString($3), valueToString(*else_label), "");
+        printf("Debug: Adding JF Quadruple to else statement. Condition: %s, Target Label: %s\n", valueToString($3).c_str(), valueToString(*else_label).c_str());
+
+        // The quadruples for the 'statement' ($5) are generated when $5 is reduced.
+
+        // Quadruple: Define the label that marks the end of the IF block
+        quadruples->addQuadruple("LABEL", valueToString(*else_label), "", "");
+        printf("Debug: Adding LABEL Quadruple: %s\n", valueToString(*else_label).c_str());
+
+        // Jump to end of if block after executing the else statement
+        Value* end_if_label = getLabel(); // Label to jump to after the else statement
+
+        quadruples->addQuadruple("GOTO", "", valueToString(*end_if_label), "");
+        printf("Debug: Adding GOTO Quadruple to end of IF block. Target Label: %s\n", valueToString(*end_if_label).c_str());
+
+        // Quadruple: Define the label that marks the end of the IF block
+        quadruples->addQuadruple("LABEL", valueToString(*end_if_label), "", "");
+        printf("Debug: Adding LABEL Quadruple: %s\n", valueToString(*end_if_label).c_str());
+
+        // The IF statement itself doesn't produce a value in this context,
+        // but you might need to assign to $$ if selection_statement is expected to have one.
+        // $$ = Value(); // Default value, or specific if needed.
+        printf("Selection statement (IF) processed\n");
+        free(end_if_label->stringVal); // Assuming getLabel strdup'd and valueToString doesn't take ownership
+        free(end_if_label);
+        free(else_label->stringVal); // Assuming getLabel strdup'd and valueToString doesn't take ownership
+        free(else_label);
 
         printf("Selection statement\n");
     }
