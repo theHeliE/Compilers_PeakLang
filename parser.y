@@ -274,8 +274,9 @@ variable_definition:
 
     | type_specifier identifier_list ASSIGNMENT expression ';'
     {
-        // $1 is type_specifier (Value), $2 is identifier_list (Value), $4 is expression (Value)
-        
+           if (getValueName($1)!=enumToString($4.type)) {
+            yyerror("Type mismatch in variable declaration");
+        }
         void* allocated_val_ptr = allocateValueFromExpression($4); 
 
         if (allocated_val_ptr != nullptr) { 
@@ -690,7 +691,47 @@ unary_expression
 
     
 primary_expression
-    : IDENTIFIER            { $$ = $1; }
+    : IDENTIFIER            { 
+         $$ = Value();
+        SingleEntry* entry = symbolTable->get_SingleEntry(getValueName($1));
+        if (entry) {
+             $$.type = entry->type;
+             // If the variable has an initialized value in the symbol table
+            if (entry->value != nullptr) { // Assuming 'entry->value' is the void* to the actual data
+                switch(entry->type) {
+                    case INT_TYPE:
+                        $$.intVal = *(static_cast<int*>(entry->value));
+                        printf("Debug: Resolved identifier '%s' to %d\n", getValueName($1), $$.intVal);
+                        break;
+                    case FLOAT_TYPE:
+                        $$.floatVal = *(static_cast<float*>(entry->value));
+                        break;
+                    case BOOL_TYPE:
+                        $$.boolVal = *(static_cast<bool*>(entry->value));
+                        break;
+                    case CHAR_TYPE:
+                        $$.charVal = *(static_cast<char*>(entry->value));
+                        break;
+                    case STRING_TYPE:
+                        // For STRING_TYPE, $$.stringVal should hold the content
+                        // for valueToString and allocateValueFromExpression to work correctly.
+                        if ($$.stringVal) free($$.stringVal); // Free if already allocated by Value() or previous use
+                        $$.stringVal = strdup(static_cast<char*>(entry->value)); // Copy the string content
+                        break;
+                    default:
+                         if ($1.stringVal) { // Check if stringVal is not null
+                           yyerror(("Unhandled type for identifier '" + std::string($1.stringVal) + "'").c_str());
+                       } else {
+                           yyerror("Unhandled type for identifier (name not available).");
+                       }
+                        break;
+                }
+            }
+        } else {
+            yyerror(("Identifier '" + string($1.stringVal) + "' not found.").c_str());
+            $$ = Value(); // Return an empty value on error
+        }
+    }
     | CONSTANT              { $$ = $1; }
     | TRUE                  { $$ = $1; }
     | FALSE                 { $$ = $1; }
