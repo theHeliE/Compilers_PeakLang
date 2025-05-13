@@ -1,11 +1,11 @@
-float logic1 = 0.0;
-float logic2 = 0.0;
-int or_expr1 = 1;
-int or_expr2 = 0;
-int x = 5;
+{
+    float logic1 = 0.0;
+    float logic2 = 0.0;
+    int x = 5;
 
-if (logic1 != logic2){
-    x = 12;
-} else {
-    x= 13;
+    if (logic1 != logic2){
+        x = 12;
+    } else {
+        x = 10;
+    }
 }

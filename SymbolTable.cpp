@@ -114,9 +114,11 @@ void SymbolTable::update_Value(string name, void *value, dataType type)
             table[name]->isError = true;
             return;
         }
+        // Update the value of the variable
 
         entry->isUsed = true;
         entry->value = value;
+        printf("Updating %s :\n", name.c_str());
     }
 
     // Use the get_SingleEntry function to find the entry and update the value of the entry

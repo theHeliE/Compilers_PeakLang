@@ -219,6 +219,7 @@ vector<Quadruples*> quadrupleStack;
  // Pointer to current quadruple
 Quadruples * currentQuadruple = quadruples;
 
+
 Value* getLabel(){
     printf("New Label\n");
 
@@ -248,6 +249,8 @@ Value* getLabel(){
     char * variable;
     bool boolVal;
     Value val;
+
+    void* ptr;
 }
 
 
@@ -288,7 +291,8 @@ Value* getLabel(){
 %type <val> parameter_list
 %type <val> parameter_declaration
 %type <val> selection_statement
-
+%type <ptr> LEAVE_SCOPE
+%type <ptr> compound_statement
 
 
 
@@ -357,9 +361,11 @@ external_declaration:
     {
         printf("Variable definition\n");
     }
-    | statement
+    | compound_statement
     {
         printf("Expression statement\n");
+        Quadruples * ScopeQuadruples = (Quadruples*)$1;
+        currentQuadruple = ScopeQuadruples->merge(currentQuadruple);
     }
     ;
 
@@ -504,9 +510,10 @@ parameter_declaration
     ;
 
 compound_statement
-    : '{' '}'
-    | '{' ENTER_SCOPE scope LEAVE_SCOPE'}' {
+    : '{' ENTER_SCOPE scope LEAVE_SCOPE'}' {
         printf("Compound statement\n");
+
+        $$ = $4;
     }
     ;
 
@@ -545,7 +552,7 @@ statement
 selection_statement:
     
     // eg. if (x == 5) printf("x is 5");
- IF '(' expression ')' statement %prec LOWER_THAN_ELSE
+ IF '(' expression ')' compound_statement %prec LOWER_THAN_ELSE
     {
         // $3 is the expression (condition)
         // $5 is the statement to execute if the condition is true
@@ -555,6 +562,9 @@ selection_statement:
         // Quadruple: If condition ($3) is false, jump to end_if_label
         currentQuadruple->addQuadruple("JF", valueToString($3), valueToString(*end_if_label), "");
         printf("Debug: Adding JF Quadruple for IF statement. Condition: %s, Target Label: %s\n", valueToString($3).c_str(), valueToString(*end_if_label).c_str());
+
+        Quadruples * ScopeQuadruples = (Quadruples*)$5;
+        currentQuadruple = ScopeQuadruples->merge(currentQuadruple);
 
         // The quadruples for the 'statement' ($5) are generated when $5 is reduced.
 
@@ -573,7 +583,8 @@ selection_statement:
     // #####################################
 
     // eg. if (x == 5) printf("x is 5"); else printf("x is not 5");
-    | IF '(' expression ')' statement ELSE statement{
+    | IF '(' expression ')' compound_statement ELSE compound_statement{
+        printf("Selection statement with ELSE\n");
 
          Value* else_label = getLabel(); // Label to jump to if condition is false (i.e., after the statement)
 
@@ -582,6 +593,9 @@ selection_statement:
         printf("Debug: Adding JF Quadruple to else statement. Condition: %s, Target Label: %s\n", valueToString($3).c_str(), valueToString(*else_label).c_str());
 
         // The currentQuadruple for the 'statement' ($5) are generated when $5 is reduced.
+
+        Quadruples * ScopeQuadruples = (Quadruples*)$5;
+        currentQuadruple = ScopeQuadruples->merge(currentQuadruple);
 
         // Quadruple: Define the label that marks the end of the IF block
         currentQuadruple->addQuadruple("LABEL", valueToString(*else_label), "", "");
@@ -593,6 +607,8 @@ selection_statement:
         currentQuadruple->addQuadruple("GOTO", "", valueToString(*end_if_label), "");
         printf("Debug: Adding GOTO Quadruple to end of IF block. Target Label: %s\n", valueToString(*end_if_label).c_str());
 
+        Quadruples * elseScopeQuadruples = (Quadruples*)$7;
+        currentQuadruple = elseScopeQuadruples->merge(currentQuadruple);
         // Quadruple: Define the label that marks the end of the IF block
         currentQuadruple->addQuadruple("LABEL", valueToString(*end_if_label), "", "");
         printf("Debug: Adding LABEL Quadruple: %s\n", valueToString(*end_if_label).c_str());
@@ -605,8 +621,6 @@ selection_statement:
         free(end_if_label);
         free(else_label->stringVal); // Assuming getLabel strdup'd and valueToString doesn't take ownership
         free(else_label);
-
-        printf("Selection statement\n");
     }
 
     // #####################################
@@ -712,6 +726,7 @@ assignment_expression:
         } else {
             yyerror(("Failed to create value for assignment to variable " + getValueName($1)).c_str());
         }
+        printf("Debug: Assigning value to variable %s\n", getValueName($1).c_str());
         currentQuadruple->addQuadruple("ASSIGN", valueToString($3), "", getValueName($1));
     }
             
@@ -1038,13 +1053,11 @@ primary_expression
 
         }
 
-        // add new Quadruple
-        Quadruples * newQuadruple = new Quadruples();
-        quadrupleStack.push_back(newQuadruple);
-        currentQuadruple = newQuadruple;
-
-
+        quadrupleStack.push_back(currentQuadruple);
         
+        // add new Quadruple 
+        Quadruples * newQuadruple = new Quadruples();
+        currentQuadruple = newQuadruple;
     }
     ;
 
@@ -1060,6 +1073,7 @@ primary_expression
             printf("Error: No symbol table to remove\n");
         }
 
+        $$ = currentQuadruple;
         // remove the last Quadruple
         currentQuadruple = quadrupleStack.back();
         quadrupleStack.pop_back();
@@ -1098,7 +1112,7 @@ int main(int argc, char **argv) {
         if (symbolTable->getParent() == NULL) {
             symbolTable->printTableToFile();
             // print quadruples
-            quadruples->printQuadruplesToFile("quadruples.txt");
+            currentQuadruple->printQuadruplesToFile("quadruples.txt");
         }
         return 0;
     } else {
