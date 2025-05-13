@@ -1,14 +1,14 @@
 ////////////////////////////////////////////////////////////////////////////////////////
 Name                Type           isConst   isUsed              Value     
 ----------------------------------------------------------------------------------------
-result              BOOL           false     true                false
+result              BOOL           false     false               false
 p                   INT            false     false               69
 v                   BOOL           false     false               true
 t                   INT            false     false               69
-m                   FLOAT          false     false               2.5
+m                   FLOAT          false     false               0
 u                   INT            false     false               6
 z                   BOOL           false     false               true
-g                   FLOAT          false     false               2.1
+g                   CHAR           false     false               0
 TOP_G               INT            true      false               69
 y                   INT            false     false               10
 x                   INT            false     false               10

@@ -9,8 +9,6 @@ int p = t;
 
 thabet int TOP_G = t;
 
-float m = 2.5;
-float g = 2.1;
+float m = 0.0;
+char g = '0';
 bool result = m > g;
-
-result = m == g;
