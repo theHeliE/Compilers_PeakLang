@@ -30,6 +30,9 @@ int sym[26];
 
 SymbolTable *symbolTable = new SymbolTable();
 int isError = false;
+int isFuncCall = false;
+int isLoop = false;
+
 
 // Helper function to resolve an operand to an integer value
 // Returns a pair: {value, success_flag}
@@ -209,12 +212,18 @@ string valueToString(const Value& val) {
 ///// QUADRUPLES /////
 
 Quadruples * quadruples = new Quadruples();
+// Notmally the "Main" quadruple is the current quadruple, when we enter a new scope, this temporarily changes.
+// Quadruples * currentQuadruple = quadruples;
+vector<Quadruples*> quadrupleStack;
+ 
+ // Pointer to current quadruple
+Quadruples * currentQuadruple = quadruples;
 
 Value* getLabel(){
     printf("New Label\n");
 
     char temp[20];
-    sprintf(temp, "L%d", quadruples->labelCounter++);
+    sprintf(temp, "L%d", currentQuadruple->labelCounter++);
 
     Value * result = (Value*)malloc(sizeof(Value));
     result->type = STRING_TYPE;
@@ -227,9 +236,6 @@ Value* getLabel(){
     return result;
 }
 
-// Notmally the "Main" quadruple is the current quadruple, when we enter a new scope, this temporarily changes.
-// Quadruples * currentQuadruple = quadruples;
-// vector<Quadruples*> quadrupleStack;
 
 %}
 
@@ -261,7 +267,6 @@ Value* getLabel(){
 %token <val> ASSIGNMENT
 
 /////////////////////////////////////// TYPES ///////////////////////////////////////
-
 
 
 %type <val> expression
@@ -368,8 +373,8 @@ variable_definition:
         printf("variable_declaration\n");
         symbolTable->insert($2, $1, NULL);
 
-        // handle quadruples
-        quadruples->addQuadruple("DECLARE", getValueName($2), "", "");
+        // handle currentQuadruple
+        currentQuadruple->addQuadruple("DECLARE", getValueName($2), "", "");
 
 
     }
@@ -396,9 +401,9 @@ variable_definition:
              symbolTable->insert($2, $1, nullptr); 
         }
 
-        // handle quadruples
-        quadruples->addQuadruple("DECLARE", getValueName($2), "", "");
-        quadruples->addQuadruple("ASSIGN", valueToString($4), "", getValueName($2));
+        // handle currentQuadruple
+        currentQuadruple->addQuadruple("DECLARE", getValueName($2), "", "");
+        currentQuadruple->addQuadruple("ASSIGN", valueToString($4), "", getValueName($2));
     }
 
     // #####################################
@@ -426,9 +431,9 @@ variable_definition:
              symbolTable->insert($2, $1, nullptr); 
         }
 
-        // handle quadruples
-        quadruples->addQuadruple("DECLARE", getValueName($3), "", "");
-        quadruples->addQuadruple("ASSIGN", valueToString($5), "", getValueName($3));
+        // handle currentQuadruple
+        currentQuadruple->addQuadruple("DECLARE", getValueName($3), "", "");
+        currentQuadruple->addQuadruple("ASSIGN", valueToString($5), "", getValueName($3));
 
     }
     ;
@@ -500,7 +505,9 @@ parameter_declaration
 
 compound_statement
     : '{' '}'
-    | '{' scope '}'
+    | '{' ENTER_SCOPE scope LEAVE_SCOPE'}' {
+        printf("Compound statement\n");
+    }
     ;
 
 scope
@@ -546,13 +553,13 @@ selection_statement:
         Value* end_if_label = getLabel(); // Label to jump to if condition is false (i.e., after the statement)
 
         // Quadruple: If condition ($3) is false, jump to end_if_label
-        quadruples->addQuadruple("JF", valueToString($3), valueToString(*end_if_label), "");
+        currentQuadruple->addQuadruple("JF", valueToString($3), valueToString(*end_if_label), "");
         printf("Debug: Adding JF Quadruple for IF statement. Condition: %s, Target Label: %s\n", valueToString($3).c_str(), valueToString(*end_if_label).c_str());
 
         // The quadruples for the 'statement' ($5) are generated when $5 is reduced.
 
         // Quadruple: Define the label that marks the end of the IF block
-        quadruples->addQuadruple("LABEL", valueToString(*end_if_label), "", "");
+        currentQuadruple->addQuadruple("LABEL", valueToString(*end_if_label), "", "");
         printf("Debug: Adding LABEL Quadruple: %s\n", valueToString(*end_if_label).c_str());
 
         // The IF statement itself doesn't produce a value in this context,
@@ -571,23 +578,23 @@ selection_statement:
          Value* else_label = getLabel(); // Label to jump to if condition is false (i.e., after the statement)
 
         // Quadruple: If condition ($3) is false, jump to end_if_label
-        quadruples->addQuadruple("JF", valueToString($3), valueToString(*else_label), "");
+        currentQuadruple->addQuadruple("JF", valueToString($3), valueToString(*else_label), "");
         printf("Debug: Adding JF Quadruple to else statement. Condition: %s, Target Label: %s\n", valueToString($3).c_str(), valueToString(*else_label).c_str());
 
-        // The quadruples for the 'statement' ($5) are generated when $5 is reduced.
+        // The currentQuadruple for the 'statement' ($5) are generated when $5 is reduced.
 
         // Quadruple: Define the label that marks the end of the IF block
-        quadruples->addQuadruple("LABEL", valueToString(*else_label), "", "");
+        currentQuadruple->addQuadruple("LABEL", valueToString(*else_label), "", "");
         printf("Debug: Adding LABEL Quadruple: %s\n", valueToString(*else_label).c_str());
 
         // Jump to end of if block after executing the else statement
         Value* end_if_label = getLabel(); // Label to jump to after the else statement
 
-        quadruples->addQuadruple("GOTO", "", valueToString(*end_if_label), "");
+        currentQuadruple->addQuadruple("GOTO", "", valueToString(*end_if_label), "");
         printf("Debug: Adding GOTO Quadruple to end of IF block. Target Label: %s\n", valueToString(*end_if_label).c_str());
 
         // Quadruple: Define the label that marks the end of the IF block
-        quadruples->addQuadruple("LABEL", valueToString(*end_if_label), "", "");
+        currentQuadruple->addQuadruple("LABEL", valueToString(*end_if_label), "", "");
         printf("Debug: Adding LABEL Quadruple: %s\n", valueToString(*end_if_label).c_str());
 
         // The IF statement itself doesn't produce a value in this context,
@@ -705,7 +712,7 @@ assignment_expression:
         } else {
             yyerror(("Failed to create value for assignment to variable " + getValueName($1)).c_str());
         }
-        quadruples->addQuadruple("ASSIGN", valueToString($3), "", getValueName($1));
+        currentQuadruple->addQuadruple("ASSIGN", valueToString($3), "", getValueName($1));
     }
             
 
@@ -1007,9 +1014,59 @@ primary_expression
     | TRUE                  { $$ = $1; }
     | FALSE                 { $$ = $1; }
     | '(' expression ')'    { $$ = $2; }
-    ; 
+    ;
+
+ // Scopeeeeeeeeeeeeeeeees
+ ENTER_SCOPE :
+    {
+        printf("Entering new scope\n");
+
+        // check if The scope is for a function call or a loop
+        if (!isFuncCall && !isLoop){
+            // create a new symbol table
+            symbolTable = new SymbolTable(symbolTable);
+
+        }
+        else if (isFuncCall){
+
+        isFuncCall = false;
+
+        }
+        else if (isLoop){
+
+        isLoop = false;
+
+        }
+
+        // add new Quadruple
+        Quadruples * newQuadruple = new Quadruples();
+        quadrupleStack.push_back(newQuadruple);
+        currentQuadruple = newQuadruple;
+
+
+        
+    }
+    ;
+
+  LEAVE_SCOPE :  
+  {
+        printf("Leaving scope\n");
+        if (symbolTable){
+            // remove the last symbol table
+            symbolTable->printTableToFile();
+            symbolTable = symbolTable->getParent();
+        }
+        else{
+            printf("Error: No symbol table to remove\n");
+        }
+
+        // remove the last Quadruple
+        currentQuadruple = quadrupleStack.back();
+        quadrupleStack.pop_back();
+  }
 
 %%
+
 
 void yyerror(const char *s) {
     fprintf(stderr, "[ERROR] %s\n", s);
