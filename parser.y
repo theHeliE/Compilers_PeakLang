@@ -675,7 +675,30 @@ case_item:
 loop_statement:
 
     // eg. while (x == 5) printf("x is 5");
-     WHILE '(' expression ')' statement
+     WHILE '(' ENTER_SCOPE expression LEAVE_SCOPE ')' compound_statement
+     {
+        printf("WHILE LOOP\n");
+
+        // label el barg3lo kol marra
+        Value* top_while_label = getLabel();
+        currentQuadruple->addQuadruple("LABEL", valueToString(*top_while_label), "", "");
+
+        Value* end_while_label = getLabel();
+
+
+        Quadruples * ScopeQuadruples = (Quadruples*)$5;
+        currentQuadruple = ScopeQuadruples->merge(currentQuadruple);
+
+        currentQuadruple->addQuadruple("JF", valueToString($4), valueToString(*end_while_label), "");
+
+        Quadruples * statementQuadruples = (Quadruples*)$7;
+        currentQuadruple = statementQuadruples->merge(currentQuadruple);
+
+        currentQuadruple->addQuadruple("GOTO", "", valueToString(*top_while_label), "");
+
+        currentQuadruple->addQuadruple("LABEL", valueToString(*end_while_label), "", "");
+
+     }
 
     // #####################################
 
