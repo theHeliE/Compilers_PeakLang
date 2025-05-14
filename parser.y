@@ -35,6 +35,9 @@ int isFuncCall = false;
 int isLoop = false;
 
 
+vector<Quadruples*> quadruplesListForSwitch;
+
+
 // Helper function to resolve an operand to an integer value
 // Returns a pair: {value, success_flag}
 std::pair<int, bool> resolve_operand_to_int(const Value& operand, SymbolTable* table) {
@@ -317,7 +320,8 @@ Value* handleExpression(const char* op, Value op1, Value op2) {
 %type <val> selection_statement
 %type <ptr> LEAVE_SCOPE
 %type <ptr> compound_statement
-
+%type <val> case_item
+%type <val> case_list
 
 
 /* Logical operators */
@@ -656,16 +660,70 @@ selection_statement:
     // eg. switch (x) case 1: printf("x is 1");
     // TODO: idk if it need additional rules
     // it doesn't take statement, it needs its own rules
-    | SWITCH '(' expression ')' '{' case_list '}'
+    | SWITCH '(' ENTER_SCOPE expression LEAVE_SCOPE ')' '{' case_list '}'
+    {
+        printf("SWITCH STATEMENT\n");
+
+        // check if the expression match the case
+
+
+        handleExpression("EQ", $5, $8);
+        
+
+
+        // if not, jump to the default case
+        // if yes, jump to the case
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        Value* switch_label = getLabel();
+        currentQuadruple->addQuadruple("LABEL", valueToString(*switch_label), "", "");
+
+        Quadruples * case_listQuadruples = (Quadruples*)$3;
+        currentQuadruple = case_listQuadruples->merge(currentQuadruple);
+
+        Value* end_switch_label = getLabel();
+        currentQuadruple->addQuadruple("LABEL", valueToString(*end_switch_label), "", "");
+
+        Quadruples * default_statementQuadruples = (Quadruples*)$5;
+        currentQuadruple = default_statementQuadruples->merge(currentQuadruple);
+
+        currentQuadruple->addQuadruple("LABEL", valueToString(*end_switch_label), "", "");
+    }
     ;
 
 case_list
-    : case_item
-    | case_list case_item
+    : ENTER_SCOPE case_item LEAVE_SCOPE
+    {
+        printf("CASE LIST\n");
+        quadruplesListForSwitch.push_back($1);
+        $$ = $1;
+    }
+    | case_list ENTER_SCOPE case_item LEAVE_SCOPE
+    {
+        printf("CASE LIST\n");
+        quadruplesListForSwitch.push_back($1);
+        $$ = $1;
+    }
     ;
 
 case_item:
      CASE CONSTANT ':' statement
+     {
+        printf("CASE ITEM\n");
+        $$ = $2;
+     }
     | DEFAULT ':' statement
     ;
 
