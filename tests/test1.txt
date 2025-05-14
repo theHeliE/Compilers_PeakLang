@@ -1,4 +1,5 @@
 {
+    int b = 88;
     int func (int y, int z){
         int x = 0;
         x = y + z;

@@ -35,8 +35,8 @@ int sym[26];
 SymbolTable *symbolTable = new SymbolTable();
 std:: vector<std::string> functionsOrder;
 int isError = false;
-int isFuncCall = false;
-int isLoop = false;
+bool isFuncCall = false;
+bool isLoop = false;
 
 
 
@@ -529,10 +529,11 @@ function_definition:
     
     // TODO: add symbolTable here
     // eg. int main() { return 0; }
-    type_specifier IDENTIFIER '(' ENTER_SCOPE parameters LEAVE_SCOPE {symbolTable->getParent()->insert($2, $1, NULL, false, $5, $1.type);
+    type_specifier IDENTIFIER '(' ENTER_SCOPE parameters LEAVE_SCOPE {
+    symbolTable->getParent()->insert($2, $1, NULL, false, $5, $1.type);
     functionsOrder.push_back($2.stringVal) ;} ')' compound_statement{
         printf("Function definition\n");
-        // $1 is type_specifier (Value), $2 is IDENTIFIER (Value), $4 is parameter_list (Value), $5 is compound_statement (Quadruples)
+        // $1 is type_specifier (Value), $2 is IDENTIFIER (Value), $4 is parameter_list (Value), $6 is compound_statement (Quadruples)
         // Name of the function is in $2
 
         // remove function from latest insertion order
@@ -646,10 +647,9 @@ parameter_declaration
     ;
 
 compound_statement
-    : '{' ENTER_SCOPE scope LEAVE_SCOPE'}' {
+    : '{' ENTER_SCOPE_SEMANTIC ENTER_SCOPE scope LEAVE_SCOPE LEAVE_SCOPE_SEMANTIC '}' {
         printf("Compound statement\n");
-
-        $$ = $4;
+        $$ = $5;
     }
     |'{' '}'
     ;
@@ -1032,7 +1032,7 @@ assignment_expression:
             yyerror("Matrakez ya 3aaam (pay attention noob)");
         }
         } else {
-            yyerror(("Failed to create value for assignment to variable " + getValueName($1)).c_str());
+            //yyerror(("Failed to create value for assignment to variable " + getValueName($1)).c_str());
         }
         printf("Debug: Assigning value to variable %s\n", getValueName($1).c_str());
         int resultCounter = currentQuadruple->resultCounter;
@@ -1040,9 +1040,21 @@ assignment_expression:
 
         currentQuadruple->addQuadruple("ASSIGN", result, "", getValueName($1));
     }
-            
+    |
+    IDENTIFIER  '(' ENTER_SCOPE arguments LEAVE_SCOPE ')' {
+        printf("Function call assignment expression\n");
+        // $1 is IDENTIFIER, $3 is arguments (Value)
+    }   
 
+    ;
+arguments:
+    primary_expression
+    | arguments ',' primary_expression {
 
+    }
+    | /* empty */ {
+
+    }
     ;
 
 logical_or_expression
@@ -1545,6 +1557,17 @@ primary_expression
  ENTER_SCOPE :
     {
         printf("Entering new scope\n");
+        quadrupleStack.push_back(currentQuadruple);
+        
+        // add new Quadruple 
+        Quadruples * newQuadruple = new Quadruples();
+        currentQuadruple = newQuadruple;
+    }
+    ;
+
+ENTER_SCOPE_SEMANTIC :
+    {
+        printf("Entering new scope semantic\n");
 
         // check if The scope is for a function call or a loop
         if (!isFuncCall && !isLoop){
@@ -1557,23 +1580,22 @@ primary_expression
         isFuncCall = false;
 
         }
-        else if (isLoop){
-
-        isLoop = false;
-
-        }
-
-        quadrupleStack.push_back(currentQuadruple);
-        
-        // add new Quadruple 
-        Quadruples * newQuadruple = new Quadruples();
-        currentQuadruple = newQuadruple;
     }
     ;
 
   LEAVE_SCOPE :  
   {
         printf("Leaving scope\n");
+        $$ = currentQuadruple;
+        // remove the last Quadruple
+        currentQuadruple = quadrupleStack.back();
+        quadrupleStack.pop_back();
+  }
+
+  LEAVE_SCOPE_SEMANTIC :
+  {
+        printf("Leaving scope semantic\n");
+
         if (symbolTable){
             // remove the last symbol table
             symbolTable->printTableToFile();
@@ -1582,11 +1604,6 @@ primary_expression
         else{
             printf("Error: No symbol table to remove\n");
         }
-
-        $$ = currentQuadruple;
-        // remove the last Quadruple
-        currentQuadruple = quadrupleStack.back();
-        quadrupleStack.pop_back();
   }
 
 %%
