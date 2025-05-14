@@ -59,6 +59,7 @@
 ">"         { return G_OP; }
 
 ";"         { return ';'; }
+":"         { return ':'; }
 ","         { return ','; }
 "("         { return '('; }
 ")"         { return ')'; }

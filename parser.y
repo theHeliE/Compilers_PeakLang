@@ -2,6 +2,9 @@
 
 %code requires {
     #include "value_helpers.h"
+    #include <queue>
+    #include <utility>
+    #include <string>
 }
 
 /////////////////////////////////////// GLOBALS ///////////////////////////////////////
@@ -33,6 +36,7 @@ SymbolTable *symbolTable = new SymbolTable();
 int isError = false;
 int isFuncCall = false;
 int isLoop = false;
+
 
 
 vector<Quadruples*> quadruplesListForSwitch;
@@ -276,6 +280,8 @@ Value* handleExpression(const char* op, Value op1, Value op2) {
     Value val;
 
     void* ptr;
+
+    std::queue<std::pair<dataType, std::string>> * parameterList;
 }
 
 
@@ -314,7 +320,7 @@ Value* handleExpression(const char* op, Value op1, Value op2) {
 %type <val> unary_expression
 %type <val> primary_expression
 %type <val> type_specifier
-%type <val> parameter_list
+%type <parameterList> parameter_list
 %type <val> parameter_declaration
 %type <val> loop_statement
 %type <val> selection_statement
@@ -418,7 +424,8 @@ variable_definition:
     
     // eg. int a, b, c = 5;
 
-    | type_specifier identifier_list ASSIGNMENT expression ';'
+    |
+     type_specifier identifier_list ASSIGNMENT expression ';'
     {
            if (getValueName($1)!=enumToString($4.type)) {
             yyerror("Elet adab walahy :/, Type mismatch in variable declaration");
@@ -497,7 +504,8 @@ identifier_list:
  /////////////////////////////////////// TYPE ///////////////////////////////////////
 
 type_specifier:
-    INT     { $$.stringVal = "INT"; }
+    INT     { $$.stringVal = "INT"; 
+    printf("INT\n");}
     | FLOAT   { $$.stringVal = "FLOAT"; }
     | CHAR    { $$.stringVal = "CHAR"; }
     | VOID    { $$.stringVal = "VOID";}
@@ -518,7 +526,12 @@ function_definition:
     
     // TODO: add symbolTable here
     // eg. int main() { return 0; }
-    type_specifier IDENTIFIER '(' parameter_list ')' compound_statement
+    type_specifier IDENTIFIER '(' ENTER_SCOPE parameter_list LEAVE_SCOPE {symbolTable->getParent()->insert($2, $1, NULL, false, $5, $1.type)} ')' compound_statement{
+        printf("Function definition\n");
+        // $1 is type_specifier (Value), $2 is IDENTIFIER (Value), $4 is parameter_list (Value), $5 is compound_statement (Quadruples)
+
+        
+    }
     ;
 
 
@@ -527,8 +540,9 @@ function_definition:
 
 
 parameter_list:
-    parameter_declaration           { $$ = $1; }
-    | parameter_list ',' parameter_declaration { $$ = $1; } // FIXME: change later de haga khara
+    parameter_declaration           {printf("Parameter declaration\n");}
+    | parameter_list ',' parameter_declaration {printf("Parameter declaration 2");}
+
     ;
 
 
@@ -544,6 +558,7 @@ compound_statement
 
         $$ = $4;
     }
+    |'{' '}'
     ;
 
 scope
@@ -554,6 +569,7 @@ scope
 scope_item
     : variable_definition
     | statement
+    | function_definition
     ;
 
 
@@ -661,7 +677,7 @@ selection_statement:
     // eg. switch (x) case 1: printf("x is 1");
     // TODO: idk if it need additional rules
     // it doesn't take statement, it needs its own rules
-    | SWITCH '(' ENTER_SCOPE expression LEAVE_SCOPE ')' '{' case_list '}'
+    | SWITCH '(' ENTER_SCOPE expression LEAVE_SCOPE ')' '{' case_list {printf("entering case_list\n")} '}'
     {
         printf("SWITCH STATEMENT\n");
 
@@ -723,28 +739,29 @@ case_list
     {
         printf("CASE LIST\n");
         Quadruples* caseQuad = (Quadruples*)$3;
-        quadruplesListForSwitch.push_back(caseQuad);
         $$ = caseQuad;
     }
     | case_list ENTER_SCOPE case_item LEAVE_SCOPE
     {
         printf("CASE LIST\n");
         Quadruples* caseQuad = (Quadruples*)$4;
-        quadruplesListForSwitch.push_back(caseQuad);
         $$ = caseQuad;
     }
 ;
 
 case_item:
-    CASE CONSTANT ':' primary_expression
+    CASE CONSTANT ':' compound_statement //case 1: x = 5;
      {
         printf("CASE ITEM\n");
+        Quadruples* caseQuad = (Quadruples*)$4;
+        quadruplesListForSwitch.push_back(caseQuad);
         $$ = $2;
      }
-    | DEFAULT ':' primary_expression
+    | DEFAULT ':' compound_statement
       {
-      printf("DEFAULT CASE ITEM\n");
-      $$ = $3;
+        Quadruples* caseQuad = (Quadruples*)$3;
+        quadruplesListForSwitch.push_back(caseQuad);
+        printf("DEFAULT CASE ITEM\n");
     }
     ;
 
@@ -1387,6 +1404,7 @@ unary_expression
     
 primary_expression
     : IDENTIFIER            { 
+        printf("identifier: %s\n", getValueName($1));
          $$ = Value();
         SingleEntry* entry = symbolTable->get_SingleEntry(getValueName($1));
         if (entry) {
@@ -1427,7 +1445,7 @@ primary_expression
             $$ = Value(); // Return an empty value on error
         }
     }
-    | CONSTANT              { $$ = $1; }
+    | CONSTANT              { $$ = $1; }    
     | TRUE                  { $$ = $1; }
     | FALSE                 { $$ = $1; }
     | '(' expression ')'    { $$ = $2; }

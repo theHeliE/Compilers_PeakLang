@@ -38,11 +38,14 @@
 #line 3 "parser.y"
 
     #include "value_helpers.h"
+    #include <queue>
+    #include <utility>
+    #include <string>
 
 
 
 /* Line 1676 of yacc.c  */
-#line 46 "parser.tab.h"
+#line 49 "parser.tab.h"
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -96,7 +99,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 266 "parser.y"
+#line 273 "parser.y"
 
     int intVal;
     float floatVal;
@@ -108,10 +111,12 @@ typedef union YYSTYPE
 
     void* ptr;
 
+    std::queue<std::pair<dataType, std::string>> * parameterList;
+
 
 
 /* Line 1676 of yacc.c  */
-#line 115 "parser.tab.h"
+#line 120 "parser.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
