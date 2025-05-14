@@ -1,0 +1,14 @@
+gui/node_modules/*
+gui/*.txt
+parser.tab.h
+lex.yy.c
+lex.yy.c
+lex.yy.o
+parser.output
+parser.tab.c
+parser.tab.h
+parser.tab.o
+SymbolTable.txt
+compiler.exe
+Makefile
+gui/package-lock.json
