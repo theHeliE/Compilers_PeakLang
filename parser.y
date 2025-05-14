@@ -318,10 +318,11 @@ Value* handleExpression(const char* op, Value op1, Value op2) {
 %type <val> parameter_declaration
 %type <val> loop_statement
 %type <val> selection_statement
+%type <val> case_item
+
 %type <ptr> LEAVE_SCOPE
 %type <ptr> compound_statement
-%type <val> case_item
-%type <val> case_list
+%type <ptr> case_list
 
 
 /* Logical operators */
@@ -666,40 +667,54 @@ selection_statement:
 
         // check if the expression match the case
 
+        /*
+            switch(x)
+            {
+                case 1: {
+                    x = 6;
+                    break;
+                }
+                case 2: {
+                    x = 7;
+                    break;
+                }
+                
+            }
 
-        handleExpression("EQ", $5, $8);
+            EQ x, 1
+            JF x, label1
+
+
+            EQ x, 2
+            JF x, label2
+            GOTO label3
+            LABEL label1
+            
         
+        */
+
+        Value* switch_label = getLabel();
+        currentQuadruple->addQuadruple("LABEL", valueToString(*switch_label), "", "");
+
+        Value* end_switch_label = getLabel();
+        
+        // merge el expression
+        Quadruples * exprQuadruples = (Quadruples*)$5;
+        currentQuadruple = exprQuadruples->merge(currentQuadruple);
+
+
+    for (Quadruples* quad : quadruplesListForSwitch) {
+
+        Value* caseValue = (Value*)$8;
+        Value* result = handleExpression("EQ", $4, *caseValue);
+        currentQuadruple->addQuadruple("JF", valueToString(*result), valueToString(*end_switch_label), "");
+        currentQuadruple = quad->merge(currentQuadruple);
+    }
 
 
         // if not, jump to the default case
         // if yes, jump to the case
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-        Value* switch_label = getLabel();
-        currentQuadruple->addQuadruple("LABEL", valueToString(*switch_label), "", "");
-
-        Quadruples * case_listQuadruples = (Quadruples*)$3;
-        currentQuadruple = case_listQuadruples->merge(currentQuadruple);
-
-        Value* end_switch_label = getLabel();
-        currentQuadruple->addQuadruple("LABEL", valueToString(*end_switch_label), "", "");
-
-        Quadruples * default_statementQuadruples = (Quadruples*)$5;
-        currentQuadruple = default_statementQuadruples->merge(currentQuadruple);
-
-        currentQuadruple->addQuadruple("LABEL", valueToString(*end_switch_label), "", "");
     }
     ;
 
@@ -707,24 +722,30 @@ case_list
     : ENTER_SCOPE case_item LEAVE_SCOPE
     {
         printf("CASE LIST\n");
-        quadruplesListForSwitch.push_back($1);
-        $$ = $1;
+        Quadruples* caseQuad = (Quadruples*)$3;
+        quadruplesListForSwitch.push_back(caseQuad);
+        $$ = caseQuad;
     }
     | case_list ENTER_SCOPE case_item LEAVE_SCOPE
     {
         printf("CASE LIST\n");
-        quadruplesListForSwitch.push_back($1);
-        $$ = $1;
+        Quadruples* caseQuad = (Quadruples*)$4;
+        quadruplesListForSwitch.push_back(caseQuad);
+        $$ = caseQuad;
     }
-    ;
+;
 
 case_item:
-     CASE CONSTANT ':' statement
+    CASE CONSTANT ':' primary_expression
      {
         printf("CASE ITEM\n");
         $$ = $2;
      }
-    | DEFAULT ':' statement
+    | DEFAULT ':' primary_expression
+      {
+      printf("DEFAULT CASE ITEM\n");
+      $$ = $3;
+    }
     ;
 
 
@@ -1502,3 +1523,4 @@ int main(int argc, char **argv) {
        }
 
 }
+
