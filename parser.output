@@ -68,9 +68,9 @@ Grammar
    41 case_item: CASE CONSTANT ':' statement
    42          | DEFAULT ':' statement
 
-   43 loop_statement: WHILE '(' expression ')' statement
-   44               | DO statement WHILE '(' expression ')' ';'
-   45               | FOR '(' variable_definition ENTER_SCOPE expression_statement LEAVE_SCOPE ENTER_SCOPE expression LEAVE_SCOPE ')' compound_statement
+   43 loop_statement: WHILE '(' ENTER_SCOPE expression LEAVE_SCOPE ')' compound_statement
+   44               | DO compound_statement WHILE '(' ENTER_SCOPE expression LEAVE_SCOPE ')' ';'
+   45               | FOR '(' variable_definition expression_statement ENTER_SCOPE expression LEAVE_SCOPE ')' compound_statement
 
    46 jump_statement: GOTO IDENTIFIER ';'
    47               | CONTINUE ';'
@@ -222,7 +222,7 @@ parameter_list (67)
 parameter_declaration (68)
     on left: 23, on right: 21 22
 compound_statement (69)
-    on left: 24, on right: 7 20 32 36 37 45
+    on left: 24, on right: 7 20 32 36 37 43 44 45
 scope (70)
     on left: 25 26, on right: 24 26
 scope_item (71)
@@ -230,7 +230,7 @@ scope_item (71)
 expression_statement (72)
     on left: 29 30, on right: 31 45
 statement (73)
-    on left: 31 32 33 34 35, on right: 28 41 42 43 44
+    on left: 31 32 33 34 35, on right: 28 41 42
 selection_statement (74)
     on left: 36 37 38, on right: 33
 case_list (75)
@@ -268,9 +268,9 @@ unary_expression (90)
 primary_expression (91)
     on left: 86 87 88 89 90, on right: 81
 ENTER_SCOPE (92)
-    on left: 91, on right: 24 45
+    on left: 91, on right: 24 43 44 45
 LEAVE_SCOPE (93)
-    on left: 92, on right: 24 45
+    on left: 92, on right: 24 43 44 45
 
 
 state 0
@@ -592,61 +592,23 @@ state 29
 
 state 30
 
-   43 loop_statement: WHILE . '(' expression ')' statement
+   43 loop_statement: WHILE . '(' ENTER_SCOPE expression LEAVE_SCOPE ')' compound_statement
 
     '('  shift, and go to state 75
 
 
 state 31
 
-   44 loop_statement: DO . statement WHILE '(' expression ')' ';'
+   44 loop_statement: DO . compound_statement WHILE '(' ENTER_SCOPE expression LEAVE_SCOPE ')' ';'
 
-    IDENTIFIER  shift, and go to state 24
-    CONSTANT    shift, and go to state 25
-    TRUE        shift, and go to state 26
-    FALSE       shift, and go to state 27
-    IF          shift, and go to state 28
-    SWITCH      shift, and go to state 29
-    WHILE       shift, and go to state 30
-    DO          shift, and go to state 31
-    FOR         shift, and go to state 32
-    GOTO        shift, and go to state 33
-    CONTINUE    shift, and go to state 34
-    BREAK       shift, and go to state 35
-    RETURN      shift, and go to state 36
-    '!'         shift, and go to state 37
-    '~'         shift, and go to state 38
-    '+'         shift, and go to state 39
-    '-'         shift, and go to state 40
-    ';'         shift, and go to state 41
-    '('         shift, and go to state 42
-    '{'         shift, and go to state 8
+    '{'  shift, and go to state 8
 
-    expression                 go to state 45
-    compound_statement         go to state 46
-    expression_statement       go to state 49
-    statement                  go to state 76
-    selection_statement        go to state 51
-    loop_statement             go to state 52
-    jump_statement             go to state 53
-    assignment_expression      go to state 54
-    logical_or_expression      go to state 55
-    logical_and_expression     go to state 56
-    inclusive_or_expression    go to state 57
-    exclusive_or_expression    go to state 58
-    and_expression             go to state 59
-    equality_expression        go to state 60
-    relational_expression      go to state 61
-    shift_expression           go to state 62
-    additive_expression        go to state 63
-    multiplicative_expression  go to state 64
-    unary_expression           go to state 65
-    primary_expression         go to state 66
+    compound_statement  go to state 76
 
 
 state 32
 
-   45 loop_statement: FOR . '(' variable_definition ENTER_SCOPE expression_statement LEAVE_SCOPE ENTER_SCOPE expression LEAVE_SCOPE ')' compound_statement
+   45 loop_statement: FOR . '(' variable_definition expression_statement ENTER_SCOPE expression LEAVE_SCOPE ')' compound_statement
 
     '('  shift, and go to state 77
 
@@ -1266,44 +1228,23 @@ state 74
 
 state 75
 
-   43 loop_statement: WHILE '(' . expression ')' statement
+   43 loop_statement: WHILE '(' . ENTER_SCOPE expression LEAVE_SCOPE ')' compound_statement
 
-    IDENTIFIER  shift, and go to state 24
-    CONSTANT    shift, and go to state 25
-    TRUE        shift, and go to state 26
-    FALSE       shift, and go to state 27
-    '!'         shift, and go to state 37
-    '~'         shift, and go to state 38
-    '+'         shift, and go to state 39
-    '-'         shift, and go to state 40
-    '('         shift, and go to state 42
+    $default  reduce using rule 91 (ENTER_SCOPE)
 
-    expression                 go to state 120
-    assignment_expression      go to state 54
-    logical_or_expression      go to state 55
-    logical_and_expression     go to state 56
-    inclusive_or_expression    go to state 57
-    exclusive_or_expression    go to state 58
-    and_expression             go to state 59
-    equality_expression        go to state 60
-    relational_expression      go to state 61
-    shift_expression           go to state 62
-    additive_expression        go to state 63
-    multiplicative_expression  go to state 64
-    unary_expression           go to state 65
-    primary_expression         go to state 66
+    ENTER_SCOPE  go to state 120
 
 
 state 76
 
-   44 loop_statement: DO statement . WHILE '(' expression ')' ';'
+   44 loop_statement: DO compound_statement . WHILE '(' ENTER_SCOPE expression LEAVE_SCOPE ')' ';'
 
     WHILE  shift, and go to state 121
 
 
 state 77
 
-   45 loop_statement: FOR '(' . variable_definition ENTER_SCOPE expression_statement LEAVE_SCOPE ENTER_SCOPE expression LEAVE_SCOPE ')' compound_statement
+   45 loop_statement: FOR '(' . variable_definition expression_statement ENTER_SCOPE expression LEAVE_SCOPE ')' compound_statement
 
     INT     shift, and go to state 2
     FLOAT   shift, and go to state 3
@@ -1908,27 +1849,71 @@ state 119
 
 state 120
 
-   19 expression: expression . ',' assignment_expression
-   43 loop_statement: WHILE '(' expression . ')' statement
+   43 loop_statement: WHILE '(' ENTER_SCOPE . expression LEAVE_SCOPE ')' compound_statement
 
-    ','  shift, and go to state 90
-    ')'  shift, and go to state 153
+    IDENTIFIER  shift, and go to state 24
+    CONSTANT    shift, and go to state 25
+    TRUE        shift, and go to state 26
+    FALSE       shift, and go to state 27
+    '!'         shift, and go to state 37
+    '~'         shift, and go to state 38
+    '+'         shift, and go to state 39
+    '-'         shift, and go to state 40
+    '('         shift, and go to state 42
+
+    expression                 go to state 153
+    assignment_expression      go to state 54
+    logical_or_expression      go to state 55
+    logical_and_expression     go to state 56
+    inclusive_or_expression    go to state 57
+    exclusive_or_expression    go to state 58
+    and_expression             go to state 59
+    equality_expression        go to state 60
+    relational_expression      go to state 61
+    shift_expression           go to state 62
+    additive_expression        go to state 63
+    multiplicative_expression  go to state 64
+    unary_expression           go to state 65
+    primary_expression         go to state 66
 
 
 state 121
 
-   44 loop_statement: DO statement WHILE . '(' expression ')' ';'
+   44 loop_statement: DO compound_statement WHILE . '(' ENTER_SCOPE expression LEAVE_SCOPE ')' ';'
 
     '('  shift, and go to state 154
 
 
 state 122
 
-   45 loop_statement: FOR '(' variable_definition . ENTER_SCOPE expression_statement LEAVE_SCOPE ENTER_SCOPE expression LEAVE_SCOPE ')' compound_statement
+   45 loop_statement: FOR '(' variable_definition . expression_statement ENTER_SCOPE expression LEAVE_SCOPE ')' compound_statement
 
-    $default  reduce using rule 91 (ENTER_SCOPE)
+    IDENTIFIER  shift, and go to state 24
+    CONSTANT    shift, and go to state 25
+    TRUE        shift, and go to state 26
+    FALSE       shift, and go to state 27
+    '!'         shift, and go to state 37
+    '~'         shift, and go to state 38
+    '+'         shift, and go to state 39
+    '-'         shift, and go to state 40
+    ';'         shift, and go to state 41
+    '('         shift, and go to state 42
 
-    ENTER_SCOPE  go to state 155
+    expression                 go to state 45
+    expression_statement       go to state 155
+    assignment_expression      go to state 54
+    logical_or_expression      go to state 55
+    logical_and_expression     go to state 56
+    inclusive_or_expression    go to state 57
+    exclusive_or_expression    go to state 58
+    and_expression             go to state 59
+    equality_expression        go to state 60
+    relational_expression      go to state 61
+    shift_expression           go to state 62
+    additive_expression        go to state 63
+    multiplicative_expression  go to state 64
+    unary_expression           go to state 65
+    primary_expression         go to state 66
 
 
 state 123
@@ -2234,111 +2219,32 @@ state 152
 
 state 153
 
-   43 loop_statement: WHILE '(' expression ')' . statement
+   19 expression: expression . ',' assignment_expression
+   43 loop_statement: WHILE '(' ENTER_SCOPE expression . LEAVE_SCOPE ')' compound_statement
 
-    IDENTIFIER  shift, and go to state 24
-    CONSTANT    shift, and go to state 25
-    TRUE        shift, and go to state 26
-    FALSE       shift, and go to state 27
-    IF          shift, and go to state 28
-    SWITCH      shift, and go to state 29
-    WHILE       shift, and go to state 30
-    DO          shift, and go to state 31
-    FOR         shift, and go to state 32
-    GOTO        shift, and go to state 33
-    CONTINUE    shift, and go to state 34
-    BREAK       shift, and go to state 35
-    RETURN      shift, and go to state 36
-    '!'         shift, and go to state 37
-    '~'         shift, and go to state 38
-    '+'         shift, and go to state 39
-    '-'         shift, and go to state 40
-    ';'         shift, and go to state 41
-    '('         shift, and go to state 42
-    '{'         shift, and go to state 8
+    ','  shift, and go to state 90
 
-    expression                 go to state 45
-    compound_statement         go to state 46
-    expression_statement       go to state 49
-    statement                  go to state 160
-    selection_statement        go to state 51
-    loop_statement             go to state 52
-    jump_statement             go to state 53
-    assignment_expression      go to state 54
-    logical_or_expression      go to state 55
-    logical_and_expression     go to state 56
-    inclusive_or_expression    go to state 57
-    exclusive_or_expression    go to state 58
-    and_expression             go to state 59
-    equality_expression        go to state 60
-    relational_expression      go to state 61
-    shift_expression           go to state 62
-    additive_expression        go to state 63
-    multiplicative_expression  go to state 64
-    unary_expression           go to state 65
-    primary_expression         go to state 66
+    $default  reduce using rule 92 (LEAVE_SCOPE)
+
+    LEAVE_SCOPE  go to state 160
 
 
 state 154
 
-   44 loop_statement: DO statement WHILE '(' . expression ')' ';'
+   44 loop_statement: DO compound_statement WHILE '(' . ENTER_SCOPE expression LEAVE_SCOPE ')' ';'
 
-    IDENTIFIER  shift, and go to state 24
-    CONSTANT    shift, and go to state 25
-    TRUE        shift, and go to state 26
-    FALSE       shift, and go to state 27
-    '!'         shift, and go to state 37
-    '~'         shift, and go to state 38
-    '+'         shift, and go to state 39
-    '-'         shift, and go to state 40
-    '('         shift, and go to state 42
+    $default  reduce using rule 91 (ENTER_SCOPE)
 
-    expression                 go to state 161
-    assignment_expression      go to state 54
-    logical_or_expression      go to state 55
-    logical_and_expression     go to state 56
-    inclusive_or_expression    go to state 57
-    exclusive_or_expression    go to state 58
-    and_expression             go to state 59
-    equality_expression        go to state 60
-    relational_expression      go to state 61
-    shift_expression           go to state 62
-    additive_expression        go to state 63
-    multiplicative_expression  go to state 64
-    unary_expression           go to state 65
-    primary_expression         go to state 66
+    ENTER_SCOPE  go to state 161
 
 
 state 155
 
-   45 loop_statement: FOR '(' variable_definition ENTER_SCOPE . expression_statement LEAVE_SCOPE ENTER_SCOPE expression LEAVE_SCOPE ')' compound_statement
+   45 loop_statement: FOR '(' variable_definition expression_statement . ENTER_SCOPE expression LEAVE_SCOPE ')' compound_statement
 
-    IDENTIFIER  shift, and go to state 24
-    CONSTANT    shift, and go to state 25
-    TRUE        shift, and go to state 26
-    FALSE       shift, and go to state 27
-    '!'         shift, and go to state 37
-    '~'         shift, and go to state 38
-    '+'         shift, and go to state 39
-    '-'         shift, and go to state 40
-    ';'         shift, and go to state 41
-    '('         shift, and go to state 42
+    $default  reduce using rule 91 (ENTER_SCOPE)
 
-    expression                 go to state 45
-    expression_statement       go to state 162
-    assignment_expression      go to state 54
-    logical_or_expression      go to state 55
-    logical_and_expression     go to state 56
-    inclusive_or_expression    go to state 57
-    exclusive_or_expression    go to state 58
-    and_expression             go to state 59
-    equality_expression        go to state 60
-    relational_expression      go to state 61
-    shift_expression           go to state 62
-    additive_expression        go to state 63
-    multiplicative_expression  go to state 64
-    unary_expression           go to state 65
-    primary_expression         go to state 66
+    ENTER_SCOPE  go to state 162
 
 
 state 156
@@ -2378,27 +2284,69 @@ state 159
 
 state 160
 
-   43 loop_statement: WHILE '(' expression ')' statement .
+   43 loop_statement: WHILE '(' ENTER_SCOPE expression LEAVE_SCOPE . ')' compound_statement
 
-    $default  reduce using rule 43 (loop_statement)
+    ')'  shift, and go to state 168
 
 
 state 161
 
-   19 expression: expression . ',' assignment_expression
-   44 loop_statement: DO statement WHILE '(' expression . ')' ';'
+   44 loop_statement: DO compound_statement WHILE '(' ENTER_SCOPE . expression LEAVE_SCOPE ')' ';'
 
-    ','  shift, and go to state 90
-    ')'  shift, and go to state 168
+    IDENTIFIER  shift, and go to state 24
+    CONSTANT    shift, and go to state 25
+    TRUE        shift, and go to state 26
+    FALSE       shift, and go to state 27
+    '!'         shift, and go to state 37
+    '~'         shift, and go to state 38
+    '+'         shift, and go to state 39
+    '-'         shift, and go to state 40
+    '('         shift, and go to state 42
+
+    expression                 go to state 169
+    assignment_expression      go to state 54
+    logical_or_expression      go to state 55
+    logical_and_expression     go to state 56
+    inclusive_or_expression    go to state 57
+    exclusive_or_expression    go to state 58
+    and_expression             go to state 59
+    equality_expression        go to state 60
+    relational_expression      go to state 61
+    shift_expression           go to state 62
+    additive_expression        go to state 63
+    multiplicative_expression  go to state 64
+    unary_expression           go to state 65
+    primary_expression         go to state 66
 
 
 state 162
 
-   45 loop_statement: FOR '(' variable_definition ENTER_SCOPE expression_statement . LEAVE_SCOPE ENTER_SCOPE expression LEAVE_SCOPE ')' compound_statement
+   45 loop_statement: FOR '(' variable_definition expression_statement ENTER_SCOPE . expression LEAVE_SCOPE ')' compound_statement
 
-    $default  reduce using rule 92 (LEAVE_SCOPE)
+    IDENTIFIER  shift, and go to state 24
+    CONSTANT    shift, and go to state 25
+    TRUE        shift, and go to state 26
+    FALSE       shift, and go to state 27
+    '!'         shift, and go to state 37
+    '~'         shift, and go to state 38
+    '+'         shift, and go to state 39
+    '-'         shift, and go to state 40
+    '('         shift, and go to state 42
 
-    LEAVE_SCOPE  go to state 169
+    expression                 go to state 170
+    assignment_expression      go to state 54
+    logical_or_expression      go to state 55
+    logical_and_expression     go to state 56
+    inclusive_or_expression    go to state 57
+    exclusive_or_expression    go to state 58
+    and_expression             go to state 59
+    equality_expression        go to state 60
+    relational_expression      go to state 61
+    shift_expression           go to state 62
+    additive_expression        go to state 63
+    multiplicative_expression  go to state 64
+    unary_expression           go to state 65
+    primary_expression         go to state 66
 
 
 state 163
@@ -2407,21 +2355,21 @@ state 163
 
     '{'  shift, and go to state 8
 
-    compound_statement  go to state 170
+    compound_statement  go to state 171
 
 
 state 164
 
    41 case_item: CASE . CONSTANT ':' statement
 
-    CONSTANT  shift, and go to state 171
+    CONSTANT  shift, and go to state 172
 
 
 state 165
 
    42 case_item: DEFAULT . ':' statement
 
-    ':'  shift, and go to state 172
+    ':'  shift, and go to state 173
 
 
 state 166
@@ -2431,9 +2379,9 @@ state 166
 
     CASE     shift, and go to state 164
     DEFAULT  shift, and go to state 165
-    '}'      shift, and go to state 173
+    '}'      shift, and go to state 174
 
-    case_item  go to state 174
+    case_item  go to state 175
 
 
 state 167
@@ -2445,135 +2393,54 @@ state 167
 
 state 168
 
-   44 loop_statement: DO statement WHILE '(' expression ')' . ';'
+   43 loop_statement: WHILE '(' ENTER_SCOPE expression LEAVE_SCOPE ')' . compound_statement
 
-    ';'  shift, and go to state 175
+    '{'  shift, and go to state 8
+
+    compound_statement  go to state 176
 
 
 state 169
 
-   45 loop_statement: FOR '(' variable_definition ENTER_SCOPE expression_statement LEAVE_SCOPE . ENTER_SCOPE expression LEAVE_SCOPE ')' compound_statement
+   19 expression: expression . ',' assignment_expression
+   44 loop_statement: DO compound_statement WHILE '(' ENTER_SCOPE expression . LEAVE_SCOPE ')' ';'
 
-    $default  reduce using rule 91 (ENTER_SCOPE)
+    ','  shift, and go to state 90
 
-    ENTER_SCOPE  go to state 176
+    $default  reduce using rule 92 (LEAVE_SCOPE)
+
+    LEAVE_SCOPE  go to state 177
 
 
 state 170
+
+   19 expression: expression . ',' assignment_expression
+   45 loop_statement: FOR '(' variable_definition expression_statement ENTER_SCOPE expression . LEAVE_SCOPE ')' compound_statement
+
+    ','  shift, and go to state 90
+
+    $default  reduce using rule 92 (LEAVE_SCOPE)
+
+    LEAVE_SCOPE  go to state 178
+
+
+state 171
 
    37 selection_statement: IF '(' expression ')' compound_statement ELSE compound_statement .
 
     $default  reduce using rule 37 (selection_statement)
 
 
-state 171
+state 172
 
    41 case_item: CASE CONSTANT . ':' statement
 
-    ':'  shift, and go to state 177
-
-
-state 172
-
-   42 case_item: DEFAULT ':' . statement
-
-    IDENTIFIER  shift, and go to state 24
-    CONSTANT    shift, and go to state 25
-    TRUE        shift, and go to state 26
-    FALSE       shift, and go to state 27
-    IF          shift, and go to state 28
-    SWITCH      shift, and go to state 29
-    WHILE       shift, and go to state 30
-    DO          shift, and go to state 31
-    FOR         shift, and go to state 32
-    GOTO        shift, and go to state 33
-    CONTINUE    shift, and go to state 34
-    BREAK       shift, and go to state 35
-    RETURN      shift, and go to state 36
-    '!'         shift, and go to state 37
-    '~'         shift, and go to state 38
-    '+'         shift, and go to state 39
-    '-'         shift, and go to state 40
-    ';'         shift, and go to state 41
-    '('         shift, and go to state 42
-    '{'         shift, and go to state 8
-
-    expression                 go to state 45
-    compound_statement         go to state 46
-    expression_statement       go to state 49
-    statement                  go to state 178
-    selection_statement        go to state 51
-    loop_statement             go to state 52
-    jump_statement             go to state 53
-    assignment_expression      go to state 54
-    logical_or_expression      go to state 55
-    logical_and_expression     go to state 56
-    inclusive_or_expression    go to state 57
-    exclusive_or_expression    go to state 58
-    and_expression             go to state 59
-    equality_expression        go to state 60
-    relational_expression      go to state 61
-    shift_expression           go to state 62
-    additive_expression        go to state 63
-    multiplicative_expression  go to state 64
-    unary_expression           go to state 65
-    primary_expression         go to state 66
+    ':'  shift, and go to state 179
 
 
 state 173
 
-   38 selection_statement: SWITCH '(' expression ')' '{' case_list '}' .
-
-    $default  reduce using rule 38 (selection_statement)
-
-
-state 174
-
-   40 case_list: case_list case_item .
-
-    $default  reduce using rule 40 (case_list)
-
-
-state 175
-
-   44 loop_statement: DO statement WHILE '(' expression ')' ';' .
-
-    $default  reduce using rule 44 (loop_statement)
-
-
-state 176
-
-   45 loop_statement: FOR '(' variable_definition ENTER_SCOPE expression_statement LEAVE_SCOPE ENTER_SCOPE . expression LEAVE_SCOPE ')' compound_statement
-
-    IDENTIFIER  shift, and go to state 24
-    CONSTANT    shift, and go to state 25
-    TRUE        shift, and go to state 26
-    FALSE       shift, and go to state 27
-    '!'         shift, and go to state 37
-    '~'         shift, and go to state 38
-    '+'         shift, and go to state 39
-    '-'         shift, and go to state 40
-    '('         shift, and go to state 42
-
-    expression                 go to state 179
-    assignment_expression      go to state 54
-    logical_or_expression      go to state 55
-    logical_and_expression     go to state 56
-    inclusive_or_expression    go to state 57
-    exclusive_or_expression    go to state 58
-    and_expression             go to state 59
-    equality_expression        go to state 60
-    relational_expression      go to state 61
-    shift_expression           go to state 62
-    additive_expression        go to state 63
-    multiplicative_expression  go to state 64
-    unary_expression           go to state 65
-    primary_expression         go to state 66
-
-
-state 177
-
-   41 case_item: CASE CONSTANT ':' . statement
+   42 case_item: DEFAULT ':' . statement
 
     IDENTIFIER  shift, and go to state 24
     CONSTANT    shift, and go to state 25
@@ -2618,50 +2485,127 @@ state 177
     primary_expression         go to state 66
 
 
+state 174
+
+   38 selection_statement: SWITCH '(' expression ')' '{' case_list '}' .
+
+    $default  reduce using rule 38 (selection_statement)
+
+
+state 175
+
+   40 case_list: case_list case_item .
+
+    $default  reduce using rule 40 (case_list)
+
+
+state 176
+
+   43 loop_statement: WHILE '(' ENTER_SCOPE expression LEAVE_SCOPE ')' compound_statement .
+
+    $default  reduce using rule 43 (loop_statement)
+
+
+state 177
+
+   44 loop_statement: DO compound_statement WHILE '(' ENTER_SCOPE expression LEAVE_SCOPE . ')' ';'
+
+    ')'  shift, and go to state 181
+
+
 state 178
+
+   45 loop_statement: FOR '(' variable_definition expression_statement ENTER_SCOPE expression LEAVE_SCOPE . ')' compound_statement
+
+    ')'  shift, and go to state 182
+
+
+state 179
+
+   41 case_item: CASE CONSTANT ':' . statement
+
+    IDENTIFIER  shift, and go to state 24
+    CONSTANT    shift, and go to state 25
+    TRUE        shift, and go to state 26
+    FALSE       shift, and go to state 27
+    IF          shift, and go to state 28
+    SWITCH      shift, and go to state 29
+    WHILE       shift, and go to state 30
+    DO          shift, and go to state 31
+    FOR         shift, and go to state 32
+    GOTO        shift, and go to state 33
+    CONTINUE    shift, and go to state 34
+    BREAK       shift, and go to state 35
+    RETURN      shift, and go to state 36
+    '!'         shift, and go to state 37
+    '~'         shift, and go to state 38
+    '+'         shift, and go to state 39
+    '-'         shift, and go to state 40
+    ';'         shift, and go to state 41
+    '('         shift, and go to state 42
+    '{'         shift, and go to state 8
+
+    expression                 go to state 45
+    compound_statement         go to state 46
+    expression_statement       go to state 49
+    statement                  go to state 183
+    selection_statement        go to state 51
+    loop_statement             go to state 52
+    jump_statement             go to state 53
+    assignment_expression      go to state 54
+    logical_or_expression      go to state 55
+    logical_and_expression     go to state 56
+    inclusive_or_expression    go to state 57
+    exclusive_or_expression    go to state 58
+    and_expression             go to state 59
+    equality_expression        go to state 60
+    relational_expression      go to state 61
+    shift_expression           go to state 62
+    additive_expression        go to state 63
+    multiplicative_expression  go to state 64
+    unary_expression           go to state 65
+    primary_expression         go to state 66
+
+
+state 180
 
    42 case_item: DEFAULT ':' statement .
 
     $default  reduce using rule 42 (case_item)
 
 
-state 179
+state 181
 
-   19 expression: expression . ',' assignment_expression
-   45 loop_statement: FOR '(' variable_definition ENTER_SCOPE expression_statement LEAVE_SCOPE ENTER_SCOPE expression . LEAVE_SCOPE ')' compound_statement
+   44 loop_statement: DO compound_statement WHILE '(' ENTER_SCOPE expression LEAVE_SCOPE ')' . ';'
 
-    ','  shift, and go to state 90
-
-    $default  reduce using rule 92 (LEAVE_SCOPE)
-
-    LEAVE_SCOPE  go to state 181
+    ';'  shift, and go to state 184
 
 
-state 180
+state 182
+
+   45 loop_statement: FOR '(' variable_definition expression_statement ENTER_SCOPE expression LEAVE_SCOPE ')' . compound_statement
+
+    '{'  shift, and go to state 8
+
+    compound_statement  go to state 185
+
+
+state 183
 
    41 case_item: CASE CONSTANT ':' statement .
 
     $default  reduce using rule 41 (case_item)
 
 
-state 181
+state 184
 
-   45 loop_statement: FOR '(' variable_definition ENTER_SCOPE expression_statement LEAVE_SCOPE ENTER_SCOPE expression LEAVE_SCOPE . ')' compound_statement
+   44 loop_statement: DO compound_statement WHILE '(' ENTER_SCOPE expression LEAVE_SCOPE ')' ';' .
 
-    ')'  shift, and go to state 182
-
-
-state 182
-
-   45 loop_statement: FOR '(' variable_definition ENTER_SCOPE expression_statement LEAVE_SCOPE ENTER_SCOPE expression LEAVE_SCOPE ')' . compound_statement
-
-    '{'  shift, and go to state 8
-
-    compound_statement  go to state 183
+    $default  reduce using rule 44 (loop_statement)
 
 
-state 183
+state 185
 
-   45 loop_statement: FOR '(' variable_definition ENTER_SCOPE expression_statement LEAVE_SCOPE ENTER_SCOPE expression LEAVE_SCOPE ')' compound_statement .
+   45 loop_statement: FOR '(' variable_definition expression_statement ENTER_SCOPE expression LEAVE_SCOPE ')' compound_statement .
 
     $default  reduce using rule 45 (loop_statement)

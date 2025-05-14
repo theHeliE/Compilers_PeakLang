@@ -703,7 +703,30 @@ loop_statement:
     // #####################################
 
     // eg. do {x++;} while (x < 10);
-    | DO statement WHILE '(' expression ')' ';'
+    | DO compound_statement WHILE '(' ENTER_SCOPE expression LEAVE_SCOPE ')' ';'
+    {
+        printf("DO WHILE LOOP\n");
+
+        Value* top_while_label = getLabel();
+        currentQuadruple->addQuadruple("LABEL", valueToString(*top_while_label), "", "");
+
+        Value* end_while_label = getLabel();
+
+        Quadruples * statementQuadruples = (Quadruples*)$2;
+        currentQuadruple = statementQuadruples->merge(currentQuadruple);
+
+
+        Quadruples * ScopeQuadruples = (Quadruples*)$7;
+        currentQuadruple = ScopeQuadruples->merge(currentQuadruple);
+
+        currentQuadruple->addQuadruple("JF", valueToString($6), valueToString(*end_while_label), "");
+
+        currentQuadruple->addQuadruple("GOTO", "", valueToString(*top_while_label), "");
+
+        currentQuadruple->addQuadruple("LABEL", valueToString(*end_while_label), "", "");
+        
+
+    }
 
     // #####################################
 
