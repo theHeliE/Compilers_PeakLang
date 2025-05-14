@@ -33,6 +33,7 @@ void yyerror(const char *s);
 int sym[26];
 
 SymbolTable *symbolTable = new SymbolTable();
+std:: vector<std::string> functionsOrder;
 int isError = false;
 int isFuncCall = false;
 int isLoop = false;
@@ -282,6 +283,7 @@ Value* handleExpression(const char* op, Value op1, Value op2) {
     void* ptr;
 
     std::queue<std::pair<dataType, std::string>> * parameterList;
+    std::pair<dataType, std::string> *parameterDeclaration;
 }
 
 
@@ -321,7 +323,8 @@ Value* handleExpression(const char* op, Value op1, Value op2) {
 %type <val> primary_expression
 %type <val> type_specifier
 %type <parameterList> parameter_list
-%type <val> parameter_declaration
+%type <parameterDeclaration> parameter_declaration
+%type <parameterList> parameters
 %type <val> loop_statement
 %type <val> selection_statement
 %type <val> case_item
@@ -526,30 +529,120 @@ function_definition:
     
     // TODO: add symbolTable here
     // eg. int main() { return 0; }
-    type_specifier IDENTIFIER '(' ENTER_SCOPE parameter_list LEAVE_SCOPE {symbolTable->getParent()->insert($2, $1, NULL, false, $5, $1.type)} ')' compound_statement{
+    type_specifier IDENTIFIER '(' ENTER_SCOPE parameters LEAVE_SCOPE {symbolTable->getParent()->insert($2, $1, NULL, false, $5, $1.type);
+    functionsOrder.push_back($2.stringVal) ;} ')' compound_statement{
         printf("Function definition\n");
         // $1 is type_specifier (Value), $2 is IDENTIFIER (Value), $4 is parameter_list (Value), $5 is compound_statement (Quadruples)
+        // Name of the function is in $2
 
+        // remove function from latest insertion order
+        functionsOrder.pop_back();
+
+        currentQuadruple->addQuadruple("LABEL", $2.stringVal, "", "");
+
+        // merging parameters with the current quadruple
+        Quadruples * parametersQuadruples = (Quadruples*)$6;
+        currentQuadruple = parametersQuadruples->reverseMerge(currentQuadruple);
         
+        // merging the function body with the current quadruple
+        Quadruples * functionBodyQuadruples = (Quadruples*)$9;
+        currentQuadruple = functionBodyQuadruples->merge(currentQuadruple);
     }
     ;
 
 
 
 /////////////////////////////////////// PARAMETERS ///////////////////////////////////////
+parameters 
+: parameter_list
+{
+    printf("Parameters\n");
+    $$ = $1;
+
+    // create a symbol table
+    symbolTable = new SymbolTable(symbolTable);
+    isFuncCall = true;
+
+    //Pushing parameters to the symbol table
+    queue<std::pair<dataType,std::string>>paramList = *$$;
+     while (!paramList.empty()) 
+        {
+            pair<dataType, string> arg = paramList.front();
+            paramList.pop();
+            void* dummyValue;
+            switch (arg.first) {
+            case dataType::INT_TYPE:
+                dummyValue = new int(0);
+                break;
+            case dataType::FLOAT_TYPE:
+                dummyValue = new float(0.0);
+                break;
+            case dataType::BOOL_TYPE:
+                dummyValue = new bool(false);
+                break;
+            case dataType::STRING_TYPE:
+                dummyValue = strdup("");
+                break;
+            case dataType::CHAR_TYPE:
+                dummyValue = new char('\0');
+                break;
+            default:
+                dummyValue = NULL;
+            }
+            symbolTable->insert(arg.second, arg.first, dummyValue);
+        }
+}
+| /* empty */
+{
+    printf("No parameters\n");
+    $$ = new std::queue<std::pair<dataType,std::string>> ();
+    // create a symbol table
+    symbolTable = new SymbolTable(symbolTable);
+    isFuncCall = true;
+}
+;
 
 
 parameter_list:
-    parameter_declaration           {printf("Parameter declaration\n");}
-    | parameter_list ',' parameter_declaration {printf("Parameter declaration 2");}
+    parameter_declaration           {
+        $$ = new std::queue<std::pair<dataType,std::string>> ();
+        $$->push(make_pair($1->first, $1->second));
 
+        currentQuadruple->addQuadruple("POP", $1->second , "", "");
+    }
+    | parameter_list ',' parameter_declaration {
+        // Pushing paramter to the queue
+        printf("Parameter list\n");
+        $$ = $1;
+        $$->push(make_pair($3->first, $3->second));
+        currentQuadruple->addQuadruple("POP", $3->second , "", "");
+
+    }
     ;
 
 
 /////////////////////////////////////// PARAMETERS DECLERATION ///////////////////////////////////////
 
 parameter_declaration
-    : type_specifier IDENTIFIER
+    : type_specifier IDENTIFIER {
+        // pushing paramter to the queue
+        printf("Parameter declaration\n");
+        dataType param_type = $1.type; // Get the dataType from the type_specifier's Value
+        std::string param_name;
+
+        if ($2.stringVal) {
+            param_name = std::string($2.stringVal); // Convert char* name to std::string
+        } else {
+            yyerror("Parameter identifier has no name.");
+            param_name = "<unknown_param_name>";
+        }
+
+        printf("Parameter declaration: Name='%s', Type='%s'\n", param_name.c_str(), enumToString(param_type).c_str());
+
+        // Create the pair on the heap with the correct types
+        $$ = new std::pair<dataType, std::string>(param_type, param_name);
+    }
+       
     ;
 
 compound_statement
@@ -677,7 +770,7 @@ selection_statement:
     // eg. switch (x) case 1: printf("x is 1");
     // TODO: idk if it need additional rules
     // it doesn't take statement, it needs its own rules
-    | SWITCH '(' ENTER_SCOPE expression LEAVE_SCOPE ')' '{' case_list {printf("entering case_list\n")} '}'
+    | SWITCH '(' ENTER_SCOPE expression LEAVE_SCOPE ')' '{' case_list  '}'
     {
         printf("SWITCH STATEMENT\n");
 
@@ -891,18 +984,16 @@ jump_statement
         
     | RETURN ';'
     {
-       // check if the function is returning a value with same type
-        // TODO: string functionName = (active functions) I would like to get the function name from the symbol table
-        // TODO: we can have a vector of strings that contain all active functions (or stack)
-        string functionName = "dummy"; // change later
-        // SingleEntry * functionEntry = symbolTable->get_SingleEntry(functionName);
-        
-        // Im not sure that NULL de haga sah walla la
-        // if (functionEntry->returnType != NULL) 
-        // {
-        //     printf("[ERROR] Type mismatch in return statement\n");
-        //     ErrorToFile("Type mismatch in return statement");
-        // }
+        printf("Return statement\n");
+        string functionName = functionsOrder.back();
+        // get type of the function from SymbolTable
+        SingleEntry * functionEntry = symbolTable->get_SingleEntry(functionName);
+        if (functionEntry->type != VOID_TYPE) {
+            yyerror("Elet adab walahy :/, Type mismatch in return statement");
+        }
+
+        // handle currentQuadruple
+        currentQuadruple->addQuadruple("RET", "", "", "");
 
     }
 
@@ -910,17 +1001,16 @@ jump_statement
 
     | RETURN expression ';'
     {
-        // check if the function is returning a value with same type
-        // TODO: string functionName = (active functions) I would like to get the function name from the symbol table
-        // TODO: we can have a vector of strings that contain all active functions (or stack)
-        string functionName = "dummy"; // change later
-        // SingleEntry * functionEntry = symbolTable->get_SingleEntry(functionName);
-        
-        // if (functionEntry->returnType != $2[0]->type) 
-        // {
-        //     printf("[ERROR] Type mismatch in return statement\n");
-        //     ErrorToFile("Type mismatch in return statement");
-        // }
+        printf("Return statement with expression\n");
+        string functionName = functionsOrder.back();
+        // get type of the function from SymbolTable
+        SingleEntry * functionEntry = symbolTable->get_SingleEntry(functionName);
+        if (functionEntry->type != $2.type) {
+            yyerror("Elet adab walahy :/, Type mismatch in return statement");
+        }
+
+        // handle currentQuadruple
+        currentQuadruple->addQuadruple("RET", valueToString($2), "", "");
     }
     ;
 

@@ -1,4 +1,9 @@
 {
     int func (int y, int z){
+        int x = 0;
+        x = y + z;
+        return x;
     }
+    int r = 9 * 7;
+    r = func(2 , 3);
 }
