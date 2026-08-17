@@ -24,26 +24,6 @@ The PeakLang compiler architecture relies on a classic multi-phase pipeline:
 4. **Intermediate Representation (IR)**: Lowers the AST into a structured IR for optimizations.
 5. **Code Generation**: Emits the final target representation (e.g., Assembly, LLVM IR, or Bytecode).
 
-## 💡 Syntax Sneak Peek
-
-*Replace this snippet with actual PeakLang syntax!*
-
-```rust
-// example.peak
-fn calculate_peak(altitude: i32) -> i32 {
-    let mut modifier: i32 = 42;
-    if altitude > 1000 {
-        modifier = modifier * 2;
-    }
-    return altitude + modifier;
-}
-
-fn main() {
-    let peak = calculate_peak(1500);
-    print("Peak level reached: {}", peak);
-}
-```
-
 ## 🛠️ Prerequisites
 
 To build the PeakLang compiler, ensure your development environment has the following installed:
